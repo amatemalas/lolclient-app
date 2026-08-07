@@ -1,6 +1,7 @@
-@props(['name' => '', 'class' => ''])
-
 @php
+    $name ??= '';
+    $class ??= '';
+
     $icons = [
         'home' => ['path' => '<path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/>'],
         'play' => ['path' => '<path d="M6 4l14 8-14 8V4z"/>'],
@@ -14,6 +15,6 @@
     $icon = $icons[$name] ?? ['path' => '<circle cx="12" cy="12" r="9"/>'];
 @endphp
 
-<svg {{ $attributes->merge(['class' => $class]) }} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<svg class="{{ $class }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     {!! $icon['path'] !!}
 </svg>
