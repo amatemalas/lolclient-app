@@ -1,9 +1,153 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400..800&display=swap');
 @import 'tailwindcss';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-display: 'Cinzel', 'Times New Roman', serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+    --color-void: #06080f;
+    --color-obsidian: #0b0f1a;
+    --color-steel: #121826;
+    --color-steel-2: #182134;
+    --color-line: #243049;
+    --color-gold: #c8aa6e;
+    --color-gold-bright: #e5c98f;
+    --color-gold-deep: #8a7547;
+    --color-arcane: #0ac8b9;
+    --color-arcane-bright: #86e4d6;
+    --color-cerulean: #0d94ce;
+    --color-cream: #f0e6d2;
+    --color-mist: #8b93a0;
+    --color-ember: #e84057;
+    --color-vine: #2e9e6b;
+}
+
+@layer base {
+    html,
+    body {
+        height: 100%;
+    }
+
+    body {
+        background-color: var(--color-void);
+        color: var(--color-cream);
+        -webkit-font-smoothing: antialiased;
+    }
+
+    ::selection {
+        background: rgb(200 170 110 / 0.35);
+        color: #fff;
+    }
+
+    *::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+
+    *::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    *::-webkit-scrollbar-thumb {
+        background: var(--color-line);
+        border: 2px solid var(--color-void);
+        border-radius: 999px;
+    }
+}
+
+@layer components {
+    /* Film-grain overlay for the whole app */
+    .grain::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: 80;
+        pointer-events: none;
+        opacity: 0.045;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+    }
+
+    /* Standard obsidian panel with a brass hairline on top */
+    .panel {
+        position: relative;
+        background: linear-gradient(180deg, var(--color-steel) 0%, var(--color-obsidian) 100%);
+        border: 1px solid var(--color-line);
+    }
+
+    .panel::before {
+        content: '';
+        position: absolute;
+        inset-inline: 16px;
+        top: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgb(200 170 110 / 0.55), transparent);
+    }
+
+    .panel-dim {
+        position: relative;
+        background: linear-gradient(180deg, rgb(18 24 38 / 0.7), rgb(11 15 26 / 0.7));
+        border: 1px solid rgb(36 48 73 / 0.7);
+    }
+
+    /* Angled "hextech" corner cuts */
+    .clip-corner {
+        clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%);
+    }
+
+    .clip-corner-sm {
+        clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+    }
+
+    /* Brushed-gold display text */
+    .text-gold-grad {
+        background: linear-gradient(180deg, #f3ddb0 0%, #c8aa6e 55%, #8a7547 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    /* Section label with diamond bullets */
+    .label {
+        font-family: var(--font-display);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.28em;
+    }
+}
+
+@layer utilities {
+    @keyframes rise-in {
+        from {
+            opacity: 0;
+            transform: translateY(16px);
+        }
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    .reveal {
+        animation: rise-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+        animation-delay: var(--reveal-delay, 0s);
+    }
+
+    @keyframes glow-pulse {
+        0%,
+        100% {
+            opacity: 0.45;
+        }
+        50% {
+            opacity: 0.85;
+        }
+    }
+
+    .glow-pulse {
+        animation: glow-pulse 4.5s ease-in-out infinite;
+    }
 }
