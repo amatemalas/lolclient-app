@@ -7,9 +7,56 @@
         <title>LoL Client — Home</title>
 
         <!-- Styles / Scripts -->
-        @vite(['resources/css/app.css'])
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="grain font-sans bg-void text-cream select-none overflow-hidden">
+        @php
+            $hasRank = $ranked['tier'] !== 'UNRANKED';
+            $asset = fn (string $path): string => route('api.lcu.asset', ['path' => $path]);
+
+            $profileIconPath = $summoner['profileIconId']
+                ? 'v1/profile-icons/'.$summoner['profileIconId'].'.jpg'
+                : null;
+
+            $sumK = $sumD = $sumA = $sumCs = $sumSec = 0;
+            foreach ($matches as $m) {
+                $sumK += $m['kills'];
+                $sumD += $m['deaths'];
+                $sumA += $m['assists'];
+                $sumCs += $m['cs'];
+                $sumSec += $m['durationSeconds'];
+            }
+            $matchCount = count($matches);
+            $kda = $sumD > 0 ? number_format(($sumK + $sumA) / $sumD, 2) : ($matchCount > 0 ? 'Perfect' : '—');
+            $csPerMin = $sumSec > 0 ? number_format($sumCs / ($sumSec / 60), 1) : '—';
+
+            $onlineFriends = collect($friends)->reject(fn ($f) => $f['status'] === 'Offline')->count();
+
+            $phaseLabels = [
+                'None' => 'Idle',
+                'Lobby' => 'Lobby',
+                'Matchmaking' => 'Matchmaking',
+                'ReadyCheck' => 'Ready check',
+                'ChampSelect' => 'Champion select',
+                'GameStart' => 'Game start',
+                'InProgress' => 'In game',
+                'WaitingForStats' => 'End of game',
+                'PreEndOfGame' => 'End of game',
+                'EndOfGame' => 'End of game',
+                'Reconnect' => 'Reconnecting',
+                'PlayAgain' => 'Play again',
+            ];
+            $gameflowLabel = $phaseLabels[$gameflow] ?? $gameflow;
+
+            $champGradients = [
+                'from-amber-500/70 via-red-700/70 to-obsidian',
+                'from-cerulean via-teal-700/70 to-obsidian',
+                'from-gold via-orange-700/70 to-obsidian',
+                'from-fuchsia-600/70 via-purple-900/70 to-obsidian',
+                'from-emerald-500/70 via-teal-800/70 to-obsidian',
+            ];
+        @endphp
+
         {{-- Ambient background glows --}}
         <div aria-hidden="true" class="pointer-events-none fixed inset-0 z-0">
             <div class="glow-pulse absolute -top-32 left-1/3 h-[480px] w-[640px] rounded-full bg-arcane/[0.07] blur-[120px]"></div>
@@ -65,24 +112,24 @@
                 {{-- Account footer --}}
                 <div class="border-t border-line/60 p-4">
                     <div class="flex items-center gap-3">
-                        <div class="clip-corner-sm relative flex h-11 w-11 items-center justify-center bg-gradient-to-br from-cerulean via-steel-2 to-obsidian ring-1 ring-line">
-                            <span class="font-display text-lg font-bold text-gold-bright">A</span>
+                        <div class="relative">
+                            <x-summoner-avatar :icon="$profileIconPath ? $asset($profileIconPath) : null" :name="$summoner['gameName']" class="h-11 w-11"/>
                             <span class="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-vine ring-2 ring-obsidian"></span>
                         </div>
                         <div class="min-w-0 flex-1 leading-tight">
-                            <p class="truncate text-[13px] font-bold text-cream">Ancalagor</p>
-                            <p class="text-[11px] text-mist">Level <span class="font-mono text-gold">128</span> · #EUW</p>
+                            <p class="truncate text-[13px] font-bold text-cream">{{ $summoner['gameName'] }}</p>
+                            <p class="text-[11px] text-mist">Level <span class="font-mono text-gold">{{ number_format($summoner['summonerLevel']) }}</span> · #{{ $summoner['tagLine'] }}</p>
                         </div>
                         <span class="clip-corner-sm bg-gold/15 px-2 py-1 font-mono text-[10px] font-semibold text-gold-bright">LVL</span>
                     </div>
                     <div class="mt-3 flex items-center gap-3 text-[11px] font-semibold">
-                        <span class="flex items-center gap-1.5 text-gold">
+                        <span class="flex items-center gap-1.5 text-gold" title="Blue Essence">
                             <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l7 4v5c0 5-3 8.5-7 11-4-2.5-7-6-7-11V6l7-4z"/></svg>
-                            <span class="font-mono">23,480</span>
+                            <span class="font-mono">{{ number_format($wallet['be']) }}</span>
                         </span>
-                        <span class="ml-auto flex items-center gap-1.5 text-cerulean">
+                        <span class="ml-auto flex items-center gap-1.5 text-cerulean" title="Riot Points">
                             <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a6 6 0 00-6 6c0 .8.2 1.6.5 2.3C4.7 11.4 3 13.6 3 16v1a5 5 0 005 5h8a5 5 0 005-5v-1c0-2.4-1.7-4.6-3.5-5.7.3-.7.5-1.5.5-2.3a6 6 0 00-6-6z"/></svg>
-                            <span class="font-mono">1,540</span>
+                            <span class="font-mono">{{ number_format($wallet['rp']) }}</span>
                         </span>
                     </div>
                 </div>
@@ -103,6 +150,12 @@
                             <svg class="h-3.5 w-3.5 text-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M3 6V3h3M21 6V3h-3M3 18v3h3M21 18v3h-3"/></svg>
                             EUW · LAN
                         </button>
+                        <span class="flex items-center gap-2 rounded-sm border border-line bg-steel px-3 py-1.5 text-[11px] font-semibold">
+                            <span data-live-dot class="h-2 w-2 rounded-full {{ $connected ? 'bg-vine' : 'bg-ember' }}"></span>
+                            <span data-live-status class="text-cream">{{ $connected ? 'Connected' : 'Offline' }}</span>
+                            <span class="text-line">·</span>
+                            <span data-live-gameflow class="text-mist">{{ $connected ? $gameflowLabel : 'Client offline' }}</span>
+                        </span>
                         <button class="relative flex h-8 w-8 items-center justify-center rounded-sm border border-line bg-steel text-mist transition-colors hover:text-cream">
                             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
                             <span class="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-ember"></span>
@@ -112,10 +165,8 @@
                         </button>
                         <div class="mx-1 h-5 w-px bg-line"></div>
                         <div class="flex items-center gap-2">
-                            <div class="clip-corner-sm flex h-7 w-7 items-center justify-center bg-gradient-to-br from-cerulean to-obsidian ring-1 ring-line">
-                                <span class="font-display text-xs font-bold text-gold-bright">A</span>
-                            </div>
-                            <span class="text-[12px] font-bold text-cream">Ancalagor</span>
+                            <x-summoner-avatar :icon="$profileIconPath ? $asset($profileIconPath) : null" :name="$summoner['gameName']" class="h-7 w-7"/>
+                            <span class="text-[12px] font-bold text-cream">{{ $summoner['gameName'] }}</span>
                         </div>
                     </div>
                 </header>
@@ -123,6 +174,14 @@
                 {{-- Content --}}
                 <main class="flex-1 overflow-y-auto px-8 py-6">
                     <div class="mx-auto flex max-w-[1360px] flex-col gap-5">
+
+                        @if (! $connected)
+                            <div class="panel-dim clip-corner flex items-center gap-3 px-4 py-3" style="--reveal-delay:.01s">
+                                <span class="h-2 w-2 shrink-0 animate-pulse rounded-full bg-ember"></span>
+                                <p class="text-[12px] font-semibold text-cream">League client offline</p>
+                                <p class="text-[11px] text-mist">{{ $error ?? 'Start League of Legends to see live data.' }}</p>
+                            </div>
+                        @endif
 
                         {{-- HERO --}}
                         <section class="clip-corner panel reveal overflow-hidden" style="--reveal-delay:.02s">
@@ -134,19 +193,19 @@
 
                             <div class="relative flex flex-wrap items-center gap-8 p-7">
                                 <div class="flex items-center gap-5">
-                                    <div class="clip-corner-sm relative flex h-24 w-24 items-center justify-center bg-gradient-to-br from-gold-bright via-gold to-gold-deep shadow-[0_8px_30px_rgba(200,170,110,0.28)]">
-                                        <span class="font-display text-5xl font-black text-obsidian/80">A</span>
-                                        <span class="clip-corner-sm absolute -bottom-2 -right-2 bg-obsidian px-2 py-1 font-mono text-[11px] font-semibold text-gold-bright ring-1 ring-gold/50">128</span>
+                                    <div class="relative">
+                                        <x-summoner-avatar :icon="$profileIconPath ? $asset($profileIconPath) : null" :name="$summoner['gameName']" gradient="from-gold-bright via-gold to-gold-deep" class="h-24 w-24 shadow-[0_8px_30px_rgba(200,170,110,0.28)]"/>
+                                        <span class="clip-corner-sm absolute -bottom-2 -right-2 bg-obsidian px-2 py-1 font-mono text-[11px] font-semibold text-gold-bright ring-1 ring-gold/50">{{ number_format($summoner['summonerLevel']) }}</span>
                                     </div>
                                     <div>
-                                        <p class="font-display text-3xl font-bold uppercase tracking-[0.08em] text-cream">Ancalagor</p>
+                                        <p class="font-display text-3xl font-bold uppercase tracking-[0.08em] text-cream">{{ $summoner['gameName'] }}</p>
                                         <p class="mt-1 flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.2em] text-mist">
                                             <span class="h-1.5 w-1.5 rotate-45 bg-arcane"></span>
-                                            Summoner Level 128 · Season 2026
+                                            Summoner Level {{ number_format($summoner['summonerLevel']) }} · Season 2026
                                         </p>
                                         <div class="mt-3 flex items-center gap-2">
                                             <span class="clip-corner-sm bg-arcane/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-arcane-bright">Ranked Solo</span>
-                                            <span class="clip-corner-sm bg-gold/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-gold-bright">Clash Ready</span>
+                                            <span class="clip-corner-sm {{ $hasRank ? 'bg-gold/15 text-gold-bright' : 'bg-ember/15 text-ember' }} px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em]">{{ $hasRank ? 'Clash Ready' : 'Unranked' }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -154,10 +213,16 @@
                                 <div class="ml-auto flex items-center gap-5">
                                     <div class="hidden text-right sm:block">
                                         <p class="label text-gold-deep">Rank</p>
-                                        <p class="mt-1 font-display text-2xl font-bold uppercase tracking-[0.1em] text-gold-grad">Diamond III</p>
-                                        <p class="font-mono text-[12px] text-mist">47 <span class="text-arcane-bright">LP</span></p>
+                                        <p class="mt-1 font-display text-2xl font-bold uppercase tracking-[0.1em] text-gold-grad">{{ $hasRank ? $ranked['tier'].' '.$ranked['division'] : 'Unranked' }}</p>
+                                        <p class="font-mono text-[12px] text-mist">
+                                            @if ($hasRank)
+                                                {{ $ranked['leaguePoints'] }} <span class="text-arcane-bright">LP</span>
+                                            @else
+                                                Play placements
+                                            @endif
+                                        </p>
                                     </div>
-                                    <button class="clip-corner-sm group relative bg-gradient-to-b from-gold-bright via-gold to-gold-deep px-10 py-3.5 font-display text-sm font-black uppercase tracking-[0.3em] text-obsidian shadow-[0_10px_30px_rgba(200,170,110,0.35)] transition-transform hover:-translate-y-0.5">
+                                    <button class="clip-corner-sm group relative bg-gradient-to-b from-gold-bright via-gold to-gold-deep px-10 py-3.5 font-display text-sm font-black uppercase tracking-[0.3em] text-obsidian shadow-[0_10px_30px_rgba(200,170,110,0.35)] transition-transform hover:-translate-y-0.5" {{ $connected ? '' : 'disabled' }}>
                                         Play
                                         <span class="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent opacity-0 transition-opacity group-hover:opacity-100"></span>
                                     </button>
@@ -172,10 +237,10 @@
                         <section class="grid grid-cols-4 gap-3" style="--reveal-delay:.08s">
                             @php
                                 $modes = [
-                                    ['name' => 'Ranked Solo', 'queue' => '5v5 · Diamond III', 'featured' => true, 'disabled' => false],
-                                    ['name' => 'Normal', 'queue' => '5v5 · Draft', 'featured' => false, 'disabled' => false],
-                                    ['name' => 'Flex', 'queue' => '5v5 · Flex', 'featured' => false, 'disabled' => false],
-                                    ['name' => 'ARAM', 'queue' => 'Howling Abyss', 'featured' => false, 'disabled' => true],
+                                    ['name' => 'Ranked Solo', 'queue' => $hasRank ? $ranked['tier'].' '.$ranked['division'] : '5v5 · Ranked', 'featured' => true, 'disabled' => ! $connected],
+                                    ['name' => 'Normal', 'queue' => '5v5 · Draft', 'featured' => false, 'disabled' => ! $connected],
+                                    ['name' => 'Flex', 'queue' => '5v5 · Flex', 'featured' => false, 'disabled' => ! $connected],
+                                    ['name' => 'ARAM', 'queue' => 'Howling Abyss', 'featured' => false, 'disabled' => ! $connected],
                                 ];
                             @endphp
                             @foreach ($modes as $mode)
@@ -195,7 +260,7 @@
                                     </div>
                                     <p class="mt-3 font-display text-sm font-bold uppercase tracking-[0.12em] {{ $mode['featured'] ? 'text-gold-bright' : 'text-cream' }}">{{ $mode['name'] }}</p>
                                     <p class="mt-0.5 text-[11px] text-mist">{{ $mode['queue'] }}</p>
-                                    <p class="{{ $mode['disabled'] ? 'text-ember/80' : 'text-arcane-bright' }} mt-3 text-[10px] font-bold uppercase tracking-[0.22em]">{{ $mode['disabled'] ? 'Queue closed' : 'Ready' }}</p>
+                                    <p class="{{ $mode['disabled'] ? 'text-ember/80' : 'text-arcane-bright' }} mt-3 text-[10px] font-bold uppercase tracking-[0.22em]">{{ $mode['disabled'] ? 'Offline' : 'Ready' }}</p>
                                 </div>
                             @endforeach
                         </section>
@@ -211,23 +276,7 @@
                                 </div>
 
                                 <div class="panel clip-corner flex flex-col divide-y divide-line/50">
-                                    @php
-                                        $matches = [
-                                            ['win' => true,  'mode' => 'Ranked Solo', 'champ' => 'Y', 'kda' => '12 / 4 / 7', 'cs' => 231, 'gold' => '13.2k', 'time' => '28:14', 'ago' => '2h ago', 'grade' => 'S'],
-                                            ['win' => false, 'mode' => 'Ranked Solo', 'champ' => 'L', 'kda' => '3 / 9 / 6',  'cs' => 189, 'gold' => '9.8k',  'time' => '32:07', 'ago' => '5h ago', 'grade' => 'D'],
-                                            ['win' => true,  'mode' => 'Flex',       'champ' => 'K', 'kda' => '8 / 3 / 12', 'cs' => 214, 'gold' => '12.1k', 'time' => '24:52', 'ago' => '9h ago', 'grade' => 'A'],
-                                            ['win' => true,  'mode' => 'ARAM',       'champ' => 'J', 'kda' => '18 / 6 / 9', 'cs' => 98,  'gold' => '11.4k', 'time' => '21:33', 'ago' => '1d ago', 'grade' => 'S'],
-                                            ['win' => false, 'mode' => 'Ranked Solo', 'champ' => 'R', 'kda' => '5 / 7 / 4',  'cs' => 201, 'gold' => '10.5k', 'time' => '35:41', 'ago' => '1d ago', 'grade' => 'B'],
-                                        ];
-                                        $champGradients = [
-                                            'Y' => 'from-amber-500/70 via-red-700/70 to-obsidian',
-                                            'L' => 'from-cerulean via-teal-700/70 to-obsidian',
-                                            'K' => 'from-gold via-orange-700/70 to-obsidian',
-                                            'J' => 'from-fuchsia-600/70 via-purple-900/70 to-obsidian',
-                                            'R' => 'from-emerald-500/70 via-teal-800/70 to-obsidian',
-                                        ];
-                                    @endphp
-                                    @foreach ($matches as $i => $m)
+                                    @forelse ($matches as $m)
                                         <div class="group flex items-center gap-4 px-4 py-3 transition-colors hover:bg-steel-2/50">
                                             <div class="flex w-16 items-center gap-2">
                                                 <span class="{{ $m['win'] ? 'bg-arcane/15 text-arcane-bright' : 'bg-ember/15 text-ember' }} clip-corner-sm px-2 py-1 text-[9px] font-black uppercase tracking-[0.16em]">
@@ -235,18 +284,20 @@
                                                 </span>
                                             </div>
 
-                                            <div class="clip-corner-sm relative flex h-11 w-11 shrink-0 items-center justify-center bg-gradient-to-br {{ $champGradients[$m['champ']] }} ring-1 ring-line">
-                                                <span class="font-display text-xl font-bold text-cream/90">{{ $m['champ'] }}</span>
+                                            <div class="clip-corner-sm relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden bg-gradient-to-br {{ $champGradients[$m['championId'] % count($champGradients)] }} ring-1 ring-line">
+                                                <span class="font-display text-xl font-bold text-cream/90">{{ mb_strtoupper(mb_substr($m['champion'] ?? '?', 0, 1)) }}</span>
+                                                <img src="{{ $asset('v1/champion-icons/'.$m['championId'].'.png') }}" alt="{{ $m['champion'] }}" class="absolute inset-0 h-full w-full object-cover" onerror="this.style.display='none'" loading="lazy">
                                             </div>
 
                                             <div class="w-32 shrink-0 leading-tight">
                                                 <p class="text-[12px] font-bold {{ $m['win'] ? 'text-arcane-bright' : 'text-ember' }}">{{ $m['mode'] }}</p>
-                                                <p class="text-[10px] text-mist">{{ $m['ago'] }} · {{ $m['time'] }}</p>
+                                                <p class="text-[10px] text-mist">{{ $m['ago'] }} · {{ $m['duration'] }}</p>
                                             </div>
 
                                             <div class="w-28 shrink-0 leading-tight">
                                                 <p class="font-mono text-[12px] font-semibold text-cream">
-                                                    <span class="text-gold-bright">{{ $m['kda'] }}</span>
+                                                    <span class="text-gold-bright">{{ $m['kills'] }}</span>
+                                                    <span class="text-mist"> / {{ $m['deaths'] }} / {{ $m['assists'] }}</span>
                                                 </p>
                                                 <p class="text-[10px] text-mist">CS {{ $m['cs'] }} · {{ $m['gold'] }} gold</p>
                                             </div>
@@ -262,17 +313,24 @@
                                             </div>
 
                                             <div class="ml-auto flex items-center gap-3">
-                                                <span class="clip-corner-sm {{ $m['win'] ? 'bg-gold/15 text-gold-bright' : 'bg-ember/15 text-ember' }} px-2 py-0.5 font-display text-[11px] font-bold">{{ $m['grade'] }}</span>
+                                                <span class="clip-corner-sm {{ $m['win'] ? 'bg-gold/15 text-gold-bright' : 'bg-ember/15 text-ember' }} px-2 py-0.5 font-display text-[11px] font-bold">Lv {{ $m['champLevel'] }}</span>
                                                 <svg class="h-4 w-4 text-mist/50 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
                                             </div>
                                         </div>
-                                    @endforeach
+                                    @empty
+                                        <div class="px-4 py-12 text-center">
+                                            <p class="font-display text-sm font-bold uppercase tracking-[0.2em] text-mist">No recent matches</p>
+                                            <p class="mt-2 text-[11px] text-mist">{{ $connected ? 'Play a game and it will appear here.' : ($error ?? 'The League client is offline.') }}</p>
+                                        </div>
+                                    @endforelse
 
-                                    <div class="flex items-center justify-center py-3">
-                                        <button class="text-[11px] font-bold uppercase tracking-[0.24em] text-mist transition-colors hover:text-gold-bright">
-                                            View match history
-                                        </button>
-                                    </div>
+                                    @if (! empty($matches))
+                                        <div class="flex items-center justify-center py-3">
+                                            <button class="text-[11px] font-bold uppercase tracking-[0.24em] text-mist transition-colors hover:text-gold-bright">
+                                                View match history
+                                            </button>
+                                        </div>
+                                    @endif
                                 </div>
                             </section>
 
@@ -292,23 +350,36 @@
                                                 <path d="M40 14l22 10.5v12c0 11-8 20-22 27-14-7-22-16-22-27v-12L40 14z" stroke="currentColor" stroke-width="1.5" fill="rgba(10,200,185,0.08)"/>
                                             </svg>
                                             <div class="text-center">
-                                                <p class="font-display text-sm font-black leading-none text-gold-bright">III</p>
-                                                <p class="mt-0.5 font-display text-[8px] font-bold uppercase tracking-[0.24em] text-gold">Diamond</p>
+                                                <p class="font-display text-sm font-black leading-none text-gold-bright">{{ $hasRank ? $ranked['division'] : '—' }}</p>
+                                                <p class="mt-0.5 font-display text-[8px] font-bold uppercase tracking-[0.24em] text-gold">{{ $hasRank ? $ranked['tier'] : 'Unranked' }}</p>
                                             </div>
                                         </div>
 
                                         <div class="min-w-0 flex-1">
-                                            <p class="font-mono text-[13px] font-semibold text-cream">47 <span class="text-arcane-bright">LP</span></p>
+                                            <p class="font-mono text-[13px] font-semibold text-cream">{{ $hasRank ? $ranked['leaguePoints'] : '—' }} <span class="text-arcane-bright">LP</span></p>
                                             <div class="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-obsidian ring-1 ring-line/60">
-                                                <div class="h-full w-[42%] bg-gradient-to-r from-gold-deep via-gold to-gold-bright"></div>
+                                                <div class="h-full bg-gradient-to-r from-gold-deep via-gold to-gold-bright" style="width: {{ min(100, $ranked['leaguePoints']) }}%"></div>
                                             </div>
-                                            <p class="mt-1.5 text-[10px] text-mist">118 LP to <span class="text-cream">Diamond II</span></p>
+                                            <p class="mt-1.5 text-[10px] text-mist">
+                                                @if ($hasRank && $ranked['isProvisional'])
+                                                    <span class="text-arcane-bright">{{ $ranked['provisionalGamesRemaining'] }} placement games left</span>
+                                                @elseif ($hasRank)
+                                                    {{ $ranked['lpToNext'] }} LP to <span class="text-cream">{{ $ranked['tier'] }} {{ $ranked['nextDivision'] }}</span>
+                                                @else
+                                                    Play ranked to unlock
+                                                @endif
+                                            </p>
                                         </div>
                                     </div>
 
                                     <div class="mt-4 grid grid-cols-2 gap-2 border-t border-line/60 pt-4">
                                         @php
-                                            $stats = [['l' => 'Win Rate', 'v' => '54.2%'], ['l' => 'KDA', 'v' => '3.41'], ['l' => 'CS / Min', 'v' => '8.1'], ['l' => 'Games', 'v' => '86']];
+                                            $stats = [
+                                                ['l' => 'Win Rate', 'v' => $hasRank ? $ranked['winRate'].'%' : '—'],
+                                                ['l' => 'KDA', 'v' => $kda],
+                                                ['l' => 'CS / Min', 'v' => $csPerMin],
+                                                ['l' => 'Games', 'v' => $hasRank ? number_format($ranked['games']) : '—'],
+                                            ];
                                         @endphp
                                         @foreach ($stats as $s)
                                             <div class="rounded-sm bg-obsidian/70 px-3 py-2 ring-1 ring-line/60">
@@ -323,65 +394,58 @@
                                 <div class="clip-corner panel reveal p-5" style="--reveal-delay:.06s">
                                     <h3 class="label text-gold-deep">Progress</h3>
                                     <div class="mt-4 flex items-end justify-between">
-                                        <p class="font-display text-xl font-bold uppercase text-cream">Level 128</p>
-                                        <p class="font-mono text-[11px] text-mist">2,340 / 3,150 <span class="text-gold-bright">XP</span></p>
+                                        <p class="font-display text-xl font-bold uppercase text-cream">Level {{ number_format($summoner['summonerLevel']) }}</p>
+                                        <p class="font-mono text-[11px] text-mist">{{ number_format($summoner['xpSinceLastLevel']) }} / {{ number_format($summoner['xpUntilNextLevel']) }} <span class="text-gold-bright">XP</span></p>
                                     </div>
                                     <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-obsidian ring-1 ring-line/60">
-                                        <div class="h-full w-[74%] bg-gradient-to-r from-gold-deep via-gold to-gold-bright shadow-[0_0_12px_rgba(200,170,110,0.6)]"></div>
+                                        <div class="h-full bg-gradient-to-r from-gold-deep via-gold to-gold-bright shadow-[0_0_12px_rgba(200,170,110,0.6)]" style="width: {{ min(100, $summoner['percentCompleteForNextLevel']) }}%"></div>
                                     </div>
                                     <div class="mt-4 space-y-2.5 border-t border-line/60 pt-4">
-                                        @php
-                                            $quests = [
-                                                ['t' => 'Win 2 games', 'done' => 1, 'of' => 2, 'xp' => 400],
-                                                ['t' => 'First win of the day', 'done' => 1, 'of' => 1, 'xp' => 300],
-                                            ];
-                                        @endphp
-                                        @foreach ($quests as $q)
+                                        @forelse ($missions as $q)
                                             <div class="flex items-center gap-3">
-                                                <div class="clip-corner-sm {{ $q['done'] === $q['of'] ? 'bg-vine/20 text-vine' : 'bg-gold/15 text-gold' }} flex h-7 w-7 items-center justify-center">
+                                                <div class="clip-corner-sm {{ $q['done'] >= $q['total'] ? 'bg-vine/20 text-vine' : 'bg-gold/15 text-gold' }} flex h-7 w-7 items-center justify-center">
                                                     <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 13l4 4L19 7"/></svg>
                                                 </div>
                                                 <div class="min-w-0 flex-1">
                                                     <div class="flex items-center justify-between">
-                                                        <p class="text-[12px] font-semibold text-cream">{{ $q['t'] }}</p>
-                                                        <p class="font-mono text-[10px] text-mist">{{ $q['done'] }}/{{ $q['of'] }}</p>
+                                                        <p class="truncate text-[12px] font-semibold text-cream">{{ $q['title'] }}</p>
+                                                        <p class="font-mono text-[10px] text-mist">{{ $q['done'] }}/{{ $q['total'] }}</p>
                                                     </div>
                                                     <div class="mt-1 h-1 w-full overflow-hidden rounded-full bg-obsidian ring-1 ring-line/60">
-                                                        <div class="h-full w-full bg-gradient-to-r from-gold-deep to-gold-bright"></div>
+                                                        <div class="h-full bg-gradient-to-r from-gold-deep to-gold-bright" style="width: {{ min(100, $q['done'] / max(1, $q['total']) * 100) }}%"></div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        @endforeach
+                                        @empty
+                                            <p class="py-2 text-center text-[11px] text-mist">{{ $connected ? 'No active missions' : 'Client offline' }}</p>
+                                        @endforelse
                                     </div>
                                 </div>
 
-                                {{-- Friends --}}
+                                {{-- Lobby / Friends --}}
                                 <div class="clip-corner panel reveal p-5" style="--reveal-delay:.1s">
                                     <div class="flex items-center justify-between">
                                         <h3 class="label text-gold-deep">Lobby</h3>
-                                        <span class="clip-corner-sm bg-arcane/15 px-2 py-0.5 font-mono text-[10px] font-semibold text-arcane-bright">4/5</span>
+                                        <span class="clip-corner-sm bg-arcane/15 px-2 py-0.5 font-mono text-[10px] font-semibold text-arcane-bright">{{ $connected ? $onlineFriends.'/'.count($friends) : '—' }}</span>
                                     </div>
                                     <div class="mt-3 space-y-2.5">
-                                        @php
-                                            $friends = [
-                                                ['n' => 'KatarinaMain', 's' => 'In lobby', 'dot' => 'bg-vine'],
-                                                ['n' => 'Darius Bot', 's' => 'In game · 12:04', 'dot' => 'bg-ember'],
-                                                ['n' => 'Support Diff', 's' => 'Online', 'dot' => 'bg-vine'],
-                                                ['n' => 'Ivern Enjoyer', 's' => 'Away', 'dot' => 'bg-gold'],
-                                            ];
-                                        @endphp
-                                        @foreach ($friends as $f)
+                                        @forelse ($friends as $f)
                                             <div class="flex items-center gap-3 rounded-sm px-2 py-1.5 transition-colors hover:bg-steel-2/60">
-                                                <div class="clip-corner-sm relative flex h-8 w-8 items-center justify-center bg-gradient-to-br from-steel-2 to-obsidian ring-1 ring-line">
-                                                    <span class="font-display text-[13px] font-bold text-gold-bright">{{ $f['n'][0] }}</span>
+                                                <div class="clip-corner-sm relative flex h-8 w-8 items-center justify-center overflow-hidden bg-gradient-to-br from-steel-2 to-obsidian ring-1 ring-line">
+                                                    <span class="font-display text-[13px] font-bold text-gold-bright">{{ mb_strtoupper(mb_substr($f['name'], 0, 1)) }}</span>
+                                                    @if ($f['icon'])
+                                                        <img src="{{ $asset('v1/profile-icons/'.$f['icon'].'.jpg') }}" alt="" class="absolute inset-0 h-full w-full object-cover" onerror="this.style.display='none'" loading="lazy">
+                                                    @endif
                                                     <span class="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full {{ $f['dot'] }} ring-2 ring-obsidian"></span>
                                                 </div>
                                                 <div class="min-w-0 flex-1 leading-tight">
-                                                    <p class="truncate text-[12px] font-semibold text-cream">{{ $f['n'] }}</p>
-                                                    <p class="text-[10px] text-mist">{{ $f['s'] }}</p>
+                                                    <p class="truncate text-[12px] font-semibold text-cream">{{ $f['name'] }}</p>
+                                                    <p class="text-[10px] text-mist">{{ $f['status'] }}</p>
                                                 </div>
                                             </div>
-                                        @endforeach
+                                        @empty
+                                            <p class="py-4 text-center text-[11px] text-mist">{{ $connected ? 'No friends online' : 'Client offline' }}</p>
+                                        @endforelse
                                     </div>
                                 </div>
                             </section>
