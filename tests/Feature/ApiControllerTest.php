@@ -91,14 +91,19 @@ class ApiControllerTest extends TestCase
     public function test_asset_proxies_client_images(): void
     {
         Http::fake([
-            'https://127.0.0.1:51705/lol-game-data/*' => Http::response('fake-image-bytes', 200, ['Content-Type' => 'image/png']),
+            'https://127.0.0.1:51705/*' => Http::response('fake-image-bytes', 200, ['Content-Type' => 'image/png']),
         ]);
 
         $this->get('/api/lcu/assets/v1/profile-icons/4567.jpg')
             ->assertOk()
             ->assertHeader('Content-Type', 'image/png')
-            ->assertHeader('Cache-Control', 'max-age=86400, public')
+            ->assertHeader('Cache-Control', 'immutable, max-age=604800, public')
+            ->assertHeader('Content-Length', '16')
             ->assertSee('fake-image-bytes');
+
+        Http::assertSent(
+            fn ($request) => $request->url() === 'https://127.0.0.1:51705/lol-game-data/assets/v1/profile-icons/4567.jpg'
+        );
     }
 
     public function test_asset_returns_404_when_client_is_not_running(): void

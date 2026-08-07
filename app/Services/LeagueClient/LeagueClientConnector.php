@@ -83,6 +83,17 @@ class LeagueClientConnector
     }
 
     /**
+     * Build an authenticated HTTP client that requests raw bytes instead of
+     * JSON, used to proxy binary assets (profile icons, champion squares, ...).
+     *
+     * @throws ClientNotRunningException
+     */
+    public function rawClient(): PendingRequest
+    {
+        return $this->client()->withHeaders(['Accept' => '*/*']);
+    }
+
+    /**
      * Send a request to the LCU and return the decoded response body.
      *
      * @throws ClientNotRunningException

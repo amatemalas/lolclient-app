@@ -330,7 +330,7 @@ class DashboardProvider
             [$status, $dot] = self::FRIEND_STATUS[$availability] ?? ['Offline', 'bg-mist'];
 
             $friends[] = [
-                'name' => $friend['name'] ?? $friend['gameName'] ?? 'Summoner',
+                'name' => $friend['gameName'] ?? 'Summoner',
                 'status' => $status,
                 'dot' => $dot,
                 'icon' => isset($friend['icon']) ? (int) $friend['icon'] : null,

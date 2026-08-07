@@ -47,8 +47,10 @@ class ApiController extends Controller
      */
     public function asset(string $path): JsonResponse|Response
     {
+        $assetPath = '/lol-game-data/assets/'.ltrim($path, '/');
+
         try {
-            $response = $this->client->client()->get('/lol-game-data/assets/v1/'.ltrim($path, '/'));
+            $response = $this->client->rawClient()->get($assetPath);
         } catch (Throwable) {
             return response()->json(['error' => 'Asset unavailable.'], 404);
         }
@@ -57,9 +59,13 @@ class ApiController extends Controller
             return response()->json(['error' => 'Asset unavailable.'], $response->status());
         }
 
-        return response($response->body(), $response->status(), [
+        $body = $response->body();
+
+        return response($body, $response->status(), [
             'Content-Type' => $response->header('Content-Type', 'application/octet-stream'),
-            'Cache-Control' => 'public, max-age=86400',
+            'Content-Length' => (string) strlen($body),
+            'Cache-Control' => 'public, max-age=604800, immutable',
+            'X-Content-Type-Options' => 'nosniff',
         ]);
     }
 }
