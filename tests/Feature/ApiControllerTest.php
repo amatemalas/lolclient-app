@@ -67,13 +67,16 @@ class ApiControllerTest extends TestCase
             ->assertSee('KatarinaMain');
     }
 
-    public function test_dashboard_renders_offline_state_when_client_is_not_running(): void
+    public function test_dashboard_redirects_to_launcher_required_when_client_is_not_running(): void
     {
         config(['leagueclient.lockfile_path' => '/nonexistent/lockfile']);
 
         $this->get('/')
+            ->assertRedirect(route('launcher.required'));
+
+        $this->get(route('launcher.required'))
             ->assertOk()
-            ->assertSee('League client offline');
+            ->assertSee('You must log into the native launcher in order to use this app.');
     }
 
     public function test_dashboard_degrades_gracefully_when_an_endpoint_fails(): void

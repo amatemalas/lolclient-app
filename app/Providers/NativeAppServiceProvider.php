@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Native\Desktop\Facades\Window;
 use Native\Desktop\Contracts\ProvidesPhpIni;
+use Native\Desktop\Facades\Menu;
+use Native\Desktop\Facades\MenuBar;
 
 class NativeAppServiceProvider implements ProvidesPhpIni
 {
@@ -13,7 +15,16 @@ class NativeAppServiceProvider implements ProvidesPhpIni
      */
     public function boot(): void
     {
-        Window::open();
+        Window::open()
+            ->width(1600)
+            ->height(900);
+        MenuBar::create();
+        Menu::create(
+            Menu::app()->label('About'),
+            Menu::make(
+                Menu::link('https://nativephp.com', 'Documentation'),
+            )->label('Docs')
+        );
     }
 
     /**

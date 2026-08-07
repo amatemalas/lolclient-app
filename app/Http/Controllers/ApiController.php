@@ -6,6 +6,7 @@ use App\Services\LeagueClient\ClientNotRunningException;
 use App\Services\LeagueClient\DashboardProvider;
 use App\Services\LeagueClient\LeagueClientConnector;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
 use Throwable;
@@ -15,11 +16,18 @@ class ApiController extends Controller
     public function __construct(protected LeagueClientConnector $client) {}
 
     /**
-     * Render the dashboard seeded with live data from the local client.
+     * Render the dashboard seeded with live data from the local client, or
+     * redirect to the launcher-required page when the client is not running.
      */
-    public function index(DashboardProvider $dashboard): View
+    public function index(DashboardProvider $dashboard): View|RedirectResponse
     {
-        return view('dashboard', $dashboard->data());
+        $data = $dashboard->data();
+
+        if (! $data['connected']) {
+            return redirect()->route('launcher.required');
+        }
+
+        return view('dashboard', $data);
     }
 
     /**
