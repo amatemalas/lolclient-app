@@ -17,9 +17,7 @@
                 <img data-field="icon" class="absolute inset-0 hidden h-full w-full object-cover" alt="" onerror="this.style.display='none'" loading="lazy">
             @endif
         </div>
-        @if ($member && ($member['isOwner'] ?? false))
-            <span data-field="owner" class="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-gold text-[10px] font-black text-obsidian" title="Lobby owner">★</span>
-        @endif
+        <span data-field="owner" class="{{ $member && ($member['isOwner'] ?? false) ? '' : 'hidden ' }}absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-gold text-[10px] font-black text-obsidian" title="Lobby owner">★</span>
     </div>
 
     <div class="w-full text-center leading-tight">

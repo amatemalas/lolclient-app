@@ -75,9 +75,7 @@ function renderSlot(slot, index) {
             img.classList.remove('hidden');
         }
 
-        if (member.isOwner) {
-            $('[data-field="owner"]').classList.remove('hidden');
-        }
+        $('[data-field="owner"]').classList.toggle('hidden', !member.isOwner);
 
         if (state.gameflow === 'ReadyCheck' && state.lobby?.readyCheck) {
             const ready = $('[data-field="ready"]');
@@ -403,7 +401,7 @@ async function switchMode(queueId) {
     document.querySelector('[data-mode-modal]')?.classList.add('hidden');
 
     try {
-        const result = await createLobby(queueId);
+        const result = await createLobbyWithRetry(queueId);
 
         if (!result.ok) {
             showToast(result.error || 'Could not switch game mode.', 'error');
@@ -426,12 +424,27 @@ async function switchMode(queueId) {
         updateReadyCheck();
 
         showToast('Lobby updated.', 'ok');
-    } catch {
-        showToast('Could not reach the lobby API.', 'error');
+    } catch (error) {
+        showToast(error?.message || 'Could not reach the lobby API.', 'error');
     }
 
     // Reconcile against the authoritative state once the client settles.
     await reconcileLobby();
+}
+
+async function createLobbyWithRetry(queueId) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+            return await createLobby(queueId);
+        } catch (error) {
+            if (attempt === 1) {
+                throw error;
+            }
+
+            // The client can be busy right after a transition; retry once.
+            await new Promise((resolve) => setTimeout(resolve, 700));
+        }
+    }
 }
 
 async function reconcileLobby() {

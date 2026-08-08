@@ -16,7 +16,11 @@ export async function createLobby(queueId, token = csrfToken()) {
         body: JSON.stringify({ queue_id: queueId }),
     });
 
-    return res.json();
+    try {
+        return await res.json();
+    } catch {
+        throw new Error(`Lobby API responded with HTTP ${res.status}.`);
+    }
 }
 
 /**
