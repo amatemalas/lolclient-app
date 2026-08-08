@@ -64,7 +64,9 @@ class ApiControllerTest extends TestCase
             ->assertSee('12')
             ->assertSee('23,480')
             ->assertSee('Win 2 games')
-            ->assertSee('KatarinaMain');
+            ->assertSee('KatarinaMain')
+            ->assertSee('assets/items/icons2d/1001_class_t1_bootsofspeed.png')
+            ->assertSee('assets/items/icons2d/3340_class_t1_wardingtotem.png');
     }
 
     public function test_dashboard_redirects_to_launcher_required_when_client_is_not_running(): void
@@ -76,7 +78,7 @@ class ApiControllerTest extends TestCase
 
         $this->get(route('launcher.required'))
             ->assertOk()
-            ->assertSee('You must log into the native launcher in order to use this app.');
+            ->assertSee('Log into the League of Legends launcher to use this app.');
     }
 
     public function test_dashboard_degrades_gracefully_when_an_endpoint_fails(): void
@@ -170,6 +172,7 @@ class ApiControllerTest extends TestCase
                                 'win' => true, 'kills' => 12, 'deaths' => 4, 'assists' => 7,
                                 'totalMinionsKilled' => 231, 'neutralMinionsKilled' => 0,
                                 'goldEarned' => 13200, 'champLevel' => 15,
+                                'item0' => 1001, 'item1' => 3111, 'item2' => 3128, 'item3' => 3047, 'item4' => 3135, 'item6' => 3340,
                             ]],
                             ['participantId' => 2, 'championId' => 22, 'teamId' => 200, 'stats' => [
                                 'win' => false, 'kills' => 3, 'deaths' => 9, 'assists' => 6,
@@ -179,6 +182,14 @@ class ApiControllerTest extends TestCase
                         ],
                     ]],
                 ],
+            ], 200),
+            'https://127.0.0.1:51705/lol-game-data/assets/v1/items.json' => Http::response([
+                ['id' => 1001, 'iconPath' => '/lol-game-data/assets/ASSETS/Items/Icons2D/1001_class_t1_bootsofspeed.png'],
+                ['id' => 3111, 'iconPath' => '/lol-game-data/assets/ASSETS/Items/Icons2D/3111_class_t2_mercurystreads.png'],
+                ['id' => 3128, 'iconPath' => '/lol-game-data/assets/ASSETS/Items/Icons2D/3128_deathfire_grasp.png'],
+                ['id' => 3047, 'iconPath' => '/lol-game-data/assets/ASSETS/Items/Icons2D/3047_class_t2_ninjatabi.png'],
+                ['id' => 3135, 'iconPath' => '/lol-game-data/assets/ASSETS/Items/Icons2D/3135_mage_t3_voidstaff.png'],
+                ['id' => 3340, 'iconPath' => '/lol-game-data/assets/ASSETS/Items/Icons2D/3340_class_t1_wardingtotem.png'],
             ], 200),
             'https://127.0.0.1:51705/lol-game-data/*' => Http::response([
                 ['id' => 21, 'name' => 'Miss Fortune'],

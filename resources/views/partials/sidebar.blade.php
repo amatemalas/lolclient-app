@@ -3,9 +3,11 @@
         ? 'v1/profile-icons/'.$summoner['profileIconId'].'.jpg'
         : null;
 
+    $route = request()->route()?->getName();
+
     $nav = [
-        ['label' => 'Home', 'active' => ! request()->routeIs('settings'), 'icon' => 'home', 'href' => url('/')],
-        ['label' => 'Play', 'active' => false, 'icon' => 'play', 'href' => '#'],
+        ['label' => 'Home', 'active' => $route === 'dashboard', 'icon' => 'home', 'href' => route('dashboard')],
+        ['label' => 'Play', 'active' => $route === 'lobby', 'icon' => 'play', 'href' => route('lobby')],
         ['label' => 'Collection', 'active' => false, 'icon' => 'collection', 'href' => '#'],
         ['label' => 'ARAM', 'active' => false, 'icon' => 'aram', 'href' => '#'],
         ['label' => 'Clash', 'active' => false, 'icon' => 'clash', 'href' => '#'],
@@ -42,7 +44,7 @@
             <p class="label text-gold-deep">Account</p>
         </div>
         <a href="{{ route('settings') }}"
-           class="{{ request()->routeIs('settings') ? 'border-gold/60 bg-gold/10 text-gold-bright' : 'border-transparent text-mist hover:bg-steel-2/70 hover:text-cream' }} flex items-center gap-3 rounded-sm border px-3 py-2.5 text-[13px] font-semibold transition-colors">
+           class="{{ $route === 'settings' ? 'border-gold/60 bg-gold/10 text-gold-bright' : 'border-transparent text-mist hover:bg-steel-2/70 hover:text-cream' }} flex items-center gap-3 rounded-sm border px-3 py-2.5 text-[13px] font-semibold transition-colors">
             @include('partials.lol-icon', ['name' => 'settings', 'class' => 'h-[18px] w-[18px]'])
             <span class="uppercase tracking-[0.16em]">Settings</span>
         </a>

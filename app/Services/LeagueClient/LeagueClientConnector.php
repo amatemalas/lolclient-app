@@ -3,7 +3,9 @@
 namespace App\Services\LeagueClient;
 
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 
 class LeagueClientConnector
@@ -84,23 +86,59 @@ class LeagueClientConnector
     }
 
     /**
-     * Send a request to the LCU and return the decoded response body.
+     * Send a request to the LCU and return the raw response so callers can
+     * inspect status codes and error payloads.
+     *
+     * @param  array<string, mixed>  $body
+     * @param  array<string, mixed>  $query
      *
      * @throws ClientNotRunningException
      */
-    public function request(string $method, string $path): mixed
+    public function send(string $method, string $path, array $body = [], array $query = []): Response
     {
         $client = $this->client();
 
         $response = match (strtoupper($method)) {
-            'GET' => $client->get($path),
-            'POST' => $client->post($path),
-            'PUT' => $client->put($path),
-            'PATCH' => $client->patch($path),
-            'DELETE' => $client->delete($path),
+            'GET' => $client->get($path, $query),
+            'POST' => $client->post($path, $body),
+            'PUT' => $client->put($path, $body),
+            'PATCH' => $client->patch($path, $body),
+            'DELETE' => $client->delete($path, $body),
             default => throw new InvalidArgumentException("Unsupported LCU method: {$method}"),
         };
 
-        return $response->json();
+        if (! $response->successful()) {
+            Log::warning('LCU request failed', [
+                'method' => $method,
+                'path' => $path,
+                'body' => $body,
+                'status' => $response->status(),
+                'response' => $this->truncate($response->body()),
+            ]);
+        }
+
+        return $response;
+    }
+
+    private function truncate(string $body, int $limit = 2000): string
+    {
+        if (strlen($body) <= $limit) {
+            return $body;
+        }
+
+        return substr($body, 0, $limit).'…';
+    }
+
+    /**
+     * Send a request to the LCU and return the decoded response body.
+     *
+     * @param  array<string, mixed>  $body
+     * @param  array<string, mixed>  $query
+     *
+     * @throws ClientNotRunningException
+     */
+    public function request(string $method, string $path, array $body = [], array $query = []): mixed
+    {
+        return $this->send($method, $path, $body, $query)->json();
     }
 }

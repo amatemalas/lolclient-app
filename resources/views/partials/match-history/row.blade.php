@@ -34,14 +34,8 @@
         <p class="text-[10px] text-mist">CS {{ $match['cs'] }} · {{ $match['gold'] }} gold</p>
     </div>
 
-    <div class="hidden flex-1 items-center gap-1.5 lg:flex">
-        @for ($s = 0; $s < 6; $s++)
-            <div class="flex h-6 w-6 items-center justify-center rounded-[3px] bg-obsidian ring-1 ring-line/70 {{ $s < 5 ? '' : 'opacity-40' }}">
-                @if ($s < 5)
-                    <span class="h-3 w-3 rotate-45 border border-gold/40"></span>
-                @endif
-            </div>
-        @endfor
+    <div class="hidden flex-1 lg:flex">
+        @include('partials.match-history.items', ['items' => $match['items'] ?? [], 'asset' => $asset])
     </div>
 
     <div class="ml-auto flex items-center gap-3">

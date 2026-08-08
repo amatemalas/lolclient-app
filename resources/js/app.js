@@ -1,3 +1,5 @@
+import { createLobby } from './lobby-actions';
+
 const statusUrl = '/api/lcu/status';
 const pollInterval = 10000;
 
@@ -47,3 +49,38 @@ if (document.querySelector('[data-live-dot]')) {
     poll();
     setInterval(poll, pollInterval);
 }
+
+// Refetch: reload the page so all server-rendered data is re-fetched.
+document.querySelectorAll('[data-refetch]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+        btn.disabled = true;
+        btn.querySelector('svg')?.classList.add('refetch-spin');
+        setTimeout(() => window.location.reload(), 350);
+    });
+});
+
+// Gamemode selection: create the matching lobby, then open it.
+document.querySelectorAll('[data-queue-action]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+        const queueId = Number(btn.dataset.queueId);
+
+        if (!queueId || btn.disabled) {
+            return;
+        }
+
+        btn.disabled = true;
+
+        try {
+            const result = await createLobby(queueId);
+
+            if (result.ok) {
+                window.location.href = '/lobby';
+                return;
+            }
+
+            btn.disabled = false;
+        } catch {
+            btn.disabled = false;
+        }
+    });
+});

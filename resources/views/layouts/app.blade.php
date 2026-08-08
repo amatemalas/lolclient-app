@@ -22,5 +22,14 @@
         <div class="relative z-10 flex h-full overflow-hidden">
             @yield('content')
         </div>
+
+        <template id="toast-template">
+            <div class="toast clip-corner-sm pointer-events-auto flex items-center gap-3 border border-line bg-obsidian px-4 py-3 shadow-2xl">
+                <span class="toast-dot h-2 w-2 shrink-0 rounded-full bg-gold"></span>
+                <p class="toast-text min-w-0 text-[11px] font-semibold text-cream"></p>
+            </div>
+        </template>
+
+        <div class="pointer-events-none fixed bottom-6 right-6 z-50 flex flex-col gap-2" data-toasts></div>
     </body>
 </html>

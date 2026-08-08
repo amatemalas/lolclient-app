@@ -7,38 +7,11 @@ use Throwable;
 
 class DashboardProvider
 {
-    private const QUEUE_MODES = [
-        400 => 'Normal Draft',
-        420 => 'Ranked Solo',
-        430 => 'Normal Blind',
-        440 => 'Flex',
-        450 => 'ARAM',
-        700 => 'Clash',
-        720 => 'Clash',
-        1700 => 'Arena',
-    ];
-
-    private const FRIEND_STATUS = [
-        'chat' => ['Online', 'bg-vine'],
-        'in-game' => ['In game', 'bg-ember'],
-        'mobile' => ['Mobile', 'bg-cerulean'],
-        'away' => ['Away', 'bg-gold'],
-        'dnd' => ['Do not disturb', 'bg-ember'],
-        'spectating' => ['Spectating', 'bg-arcane'],
-        'offline' => ['Offline', 'bg-mist'],
-    ];
-
-    private const FRIEND_STATUS_ORDER = [
-        'chat' => 0,
-        'in-game' => 1,
-        'mobile' => 2,
-        'spectating' => 3,
-        'dnd' => 4,
-        'away' => 5,
-        'offline' => 6,
-    ];
-
-    public function __construct(protected LeagueClientConnector $client) {}
+    public function __construct(
+        protected LeagueClientConnector $client,
+        protected FriendProvider $friends,
+        protected QueueProvider $queues,
+    ) {}
 
     /**
      * Assemble the dashboard data set. Every section degrades gracefully to a
@@ -48,16 +21,38 @@ class DashboardProvider
      */
     public function data(): array
     {
+        $data = $this->shell();
+
+        $data['ranked'] = $this->defaultRanked();
+        $data['matches'] = [];
+        $data['friends'] = [];
+        $data['missions'] = [];
+
+        if ($data['connected']) {
+            $data['ranked'] = $this->normalizeRanked($this->bestEffort('/lol-ranked/v1/current-ranked-stats'));
+            $champions = $this->championMap();
+            $data['matches'] = $this->recentMatches($data['summoner'], $champions, $this->itemMap());
+            $data['friends'] = $this->friends->list();
+            $data['missions'] = $this->normalizeMissions($this->bestEffort('/lol-missions/v1/missions'));
+        }
+
+        return $data;
+    }
+
+    /**
+     * Lightweight data set shared by every page shell (sidebar/topbar):
+     * connection state, current phase, summoner and wallet.
+     *
+     * @return array<string, mixed>
+     */
+    public function shell(): array
+    {
         $connected = false;
         $error = null;
         $gameflow = 'None';
 
         $summoner = $this->defaultSummoner();
-        $ranked = $this->defaultRanked();
         $wallet = ['rp' => 0, 'be' => 0];
-        $matches = [];
-        $friends = [];
-        $missions = [];
 
         try {
             $gameflow = $this->stringOr($this->client->request('GET', '/lol-gameflow/v1/gameflow-phase'), 'None');
@@ -70,15 +65,10 @@ class DashboardProvider
 
         if ($connected) {
             $summoner = $this->normalizeSummoner($this->bestEffort('/lol-summoner/v1/current-summoner'));
-            $ranked = $this->normalizeRanked($this->bestEffort('/lol-ranked/v1/current-ranked-stats'));
-            $wallet = $this->normalizeWallet($this->bestEffort('/lol-inventory/v1/wallet'));
-            $champions = $this->championMap();
-            $matches = $this->recentMatches($summoner, $champions);
-            $friends = $this->normalizeFriends($this->bestEffort('/lol-chat/v1/friends'));
-            $missions = $this->normalizeMissions($this->bestEffort('/lol-missions/v1/missions'));
+            $wallet = $this->normalizeWallet($this->bestEffort('/lol-inventory/v1/wallet', ['currencyTypes' => 'IP,RP']));
         }
 
-        return compact('connected', 'error', 'gameflow', 'summoner', 'ranked', 'wallet', 'matches', 'friends', 'missions');
+        return compact('connected', 'error', 'gameflow', 'summoner', 'wallet');
     }
 
     /**
@@ -211,11 +201,42 @@ class DashboardProvider
     }
 
     /**
+     * Map numeric item ids to their proxied icon asset paths. Item icons are
+     * NOT available at a predictable v1/items/{id}.png URL — each item carries
+     * an iconPath in items.json, so we resolve the path once per request.
+     *
+     * @return array<int, string>
+     */
+    private function itemMap(): array
+    {
+        $list = $this->bestEffort('/lol-game-data/assets/v1/items.json');
+
+        if (! is_array($list)) {
+            return [];
+        }
+
+        $map = [];
+
+        foreach ($list as $item) {
+            if (! is_array($item) || ! isset($item['id'], $item['iconPath'])) {
+                continue;
+            }
+
+            $icon = str_replace('/lol-game-data/assets/', '', (string) $item['iconPath']);
+
+            $map[(int) $item['id']] = strtolower(ltrim($icon, '/'));
+        }
+
+        return $map;
+    }
+
+    /**
      * @param  array<string, mixed>  $summoner
      * @param  array<int, array{name: string}>  $champions
+     * @param  array<int, string>  $itemIcons
      * @return array<int, array<string, mixed>>
      */
-    private function recentMatches(array $summoner, array $champions): array
+    private function recentMatches(array $summoner, array $champions, array $itemIcons): array
     {
         $puuid = $summoner['puuid'] ?? null;
         $summonerId = $summoner['summonerId'] ?? null;
@@ -246,12 +267,19 @@ class DashboardProvider
             $duration = (int) ($game['gameDuration'] ?? 0);
             $cs = (int) ($stats['totalMinionsKilled'] ?? 0) + (int) ($stats['neutralMinionsKilled'] ?? 0);
 
+            $items = [];
+            foreach ([0, 1, 2, 3, 4, 6] as $slot) {
+                $itemId = (int) ($stats['item'.$slot] ?? 0);
+                $items[] = $itemId > 0 ? ($itemIcons[$itemId] ?? null) : null;
+            }
+
             $matches[] = [
                 'win' => (bool) ($stats['win'] ?? false),
                 'championId' => $championId,
                 'champion' => $champions[$championId]['name'] ?? null,
-                'mode' => self::QUEUE_MODES[(int) ($game['queueId'] ?? 0)]
-                    ?? (string) ($game['gameMode'] ?? 'Match'),
+                'mode' => $this->queues->supports((int) ($game['queueId'] ?? 0))
+                    ? $this->queues->details((int) ($game['queueId'] ?? 0))['name']
+                    : (string) ($game['gameMode'] ?? 'Match'),
                 'duration' => $this->formatDuration($duration),
                 'durationSeconds' => $duration,
                 'ago' => $this->relativeTime($game),
@@ -261,6 +289,7 @@ class DashboardProvider
                 'cs' => $cs,
                 'gold' => $this->formatGold((int) ($stats['goldEarned'] ?? 0)),
                 'champLevel' => (int) ($stats['champLevel'] ?? 0),
+                'items' => $items,
             ];
         }
 
@@ -313,43 +342,6 @@ class DashboardProvider
     /**
      * @return array<int, array<string, mixed>>
      */
-    private function normalizeFriends(?array $raw): array
-    {
-        if (! is_array($raw)) {
-            return [];
-        }
-
-        $friends = [];
-
-        foreach ($raw as $friend) {
-            if (! is_array($friend)) {
-                continue;
-            }
-
-            $availability = $friend['availability'] ?? 'offline';
-            [$status, $dot] = self::FRIEND_STATUS[$availability] ?? ['Offline', 'bg-mist'];
-
-            $friends[] = [
-                'name' => $friend['gameName'] ?? 'Summoner',
-                'status' => $status,
-                'dot' => $dot,
-                'icon' => isset($friend['icon']) ? (int) $friend['icon'] : null,
-            ];
-        }
-
-        usort($friends, function (array $a, array $b): int {
-            $aRank = self::FRIEND_STATUS_ORDER[$this->statusKey($a['status'])] ?? 9;
-            $bRank = self::FRIEND_STATUS_ORDER[$this->statusKey($b['status'])] ?? 9;
-
-            return $aRank <=> $bRank;
-        });
-
-        return array_slice($friends, 0, 5);
-    }
-
-    /**
-     * @return array<int, array<string, mixed>>
-     */
     private function normalizeMissions(?array $raw): array
     {
         if (! is_array($raw)) {
@@ -394,11 +386,15 @@ class DashboardProvider
     /**
      * Fetch an endpoint, returning null instead of throwing when the LCU
      * responds badly to a non-critical request.
+     *
+     * @param  array<string, mixed>  $query
      */
-    private function bestEffort(string $path): mixed
+    private function bestEffort(string $path, array $query = []): mixed
     {
         try {
-            return $this->client->request('GET', $path);
+            $response = $this->client->send('GET', $path, [], $query);
+
+            return $response->successful() ? $response->json() : null;
         } catch (Throwable) {
             return null;
         }
@@ -440,10 +436,5 @@ class DashboardProvider
         }
 
         return 'recently';
-    }
-
-    private function statusKey(string $status): string
-    {
-        return array_search($status, array_column(self::FRIEND_STATUS, 0), true) ?: 'offline';
     }
 }

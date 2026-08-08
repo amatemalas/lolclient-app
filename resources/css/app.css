@@ -150,4 +150,14 @@
     .glow-pulse {
         animation: glow-pulse 4.5s ease-in-out infinite;
     }
+
+    @keyframes spin-refresh {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .refetch-spin {
+        animation: spin-refresh 0.8s linear infinite;
+    }
 }
