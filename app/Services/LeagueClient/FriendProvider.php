@@ -8,10 +8,9 @@ class FriendProvider
 {
     private const FRIEND_STATUS = [
         'chat' => ['Online', 'bg-vine', 'text-vine', 'border-vine/30 bg-vine/10'],
-        'in-game' => ['In game', 'bg-ember', 'text-ember', 'border-ember/30 bg-ember/10'],
         'mobile' => ['Mobile', 'bg-cerulean', 'text-cerulean', 'border-cerulean/30 bg-cerulean/10'],
         'away' => ['Away', 'bg-gold', 'text-gold', 'border-gold/30 bg-gold/10'],
-        'dnd' => ['Do not disturb', 'bg-ember', 'text-ember', 'border-ember/30 bg-ember/10'],
+        'dnd' => ['In game', 'bg-cerulean', 'text-cerulean', 'border-cerulean/30 bg-cerulean/10'],
         'spectating' => ['Spectating', 'bg-arcane', 'text-arcane', 'border-arcane/30 bg-arcane/10'],
         'offline' => ['Offline', 'bg-mist', 'text-mist', 'border-mist/30 bg-mist/10'],
     ];
@@ -67,7 +66,7 @@ class FriendProvider
 
             $friends[] = [
                 'key' => $availability,
-                'name' => $friend['gameName'] ?? $friend['name'] ?? 'Summoner',
+                'name' => $this->friendName($friend),
                 'summonerId' => (string) ($friend['summonerId'] ?? $friend['id'] ?? ''),
                 'status' => $status,
                 'availability' => $availability,
@@ -87,5 +86,22 @@ class FriendProvider
         });
 
         return $friends;
+    }
+
+    /**
+     * Prefer the Riot ID name, which is populated even when the legacy name
+     * field is blank on this client version.
+     */
+    private function friendName(array $friend): string
+    {
+        foreach (['gameName', 'name'] as $key) {
+            $name = trim((string) ($friend[$key] ?? ''));
+
+            if ($name !== '') {
+                return $name;
+            }
+        }
+
+        return 'Summoner';
     }
 }

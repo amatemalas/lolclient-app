@@ -171,7 +171,30 @@ class LobbyTest extends TestCase
 
         Http::assertSent(
             fn ($request) => $request->method() === 'POST'
-                && $request->url() === 'https://127.0.0.1:51705/lol-lobby/v2/lobby/members/111111/grant-invite'
+                && $request->url() === 'https://127.0.0.1:51705/lol-lobby/v2/lobby/invitations'
+                && $request[0]['toSummonerId'] === 111111
+        );
+    }
+
+    public function test_lobby_enriches_members_from_the_summoner_endpoint(): void
+    {
+        $payload = $this->lobbyPayload();
+        $payload['members'] = [
+            ['summonerId' => 987654, 'puuid' => 'puuid-123', 'summonerName' => '', 'summonerIconId' => 7191, 'summonerLevel' => 181, 'isLeader' => true, 'position' => 'FILL', 'ready' => true],
+        ];
+
+        $this->fakeClient([
+            'https://127.0.0.1:51705/lol-lobby/v2/lobby' => Http::response($payload, 200),
+        ]);
+
+        $this->getJson('/api/lcu/lobby')
+            ->assertOk()
+            ->assertJsonPath('lobby.members.0.gameName', 'Test Summoner')
+            ->assertJsonPath('lobby.members.0.tagLine', 'EUW')
+            ->assertJsonPath('lobby.members.0.icon', 7191);
+
+        Http::assertSent(
+            fn ($request) => $request->url() === 'https://127.0.0.1:51705/lol-summoner/v1/summoners/987654'
         );
     }
 

@@ -118,7 +118,9 @@ class LobbyProvider
      */
     public function invite(int $summonerId): array
     {
-        return $this->attempt('POST', '/lol-lobby/v2/lobby/members/'.$summonerId.'/grant-invite');
+        return $this->attempt('POST', '/lol-lobby/v2/lobby/invitations', [
+            ['toSummonerId' => $summonerId],
+        ]);
     }
 
     /**
@@ -214,13 +216,14 @@ class LobbyProvider
             }
 
             $summonerId = (string) ($member['summonerId'] ?? '');
+            $details = $this->needsSummonerDetails($member) ? $this->summonerDetails($summonerId) : null;
 
             $members[] = [
                 'summonerId' => $summonerId,
                 'puuid' => $member['puuid'] ?? null,
-                'gameName' => $member['gameName'] ?? $member['summonerName'] ?? 'Summoner',
-                'tagLine' => $member['gameTag'] ?? null,
-                'icon' => isset($member['profileIconId']) ? (int) $member['profileIconId'] : null,
+                'gameName' => $this->memberName($member, $details),
+                'tagLine' => $member['gameTag'] ?? $details['tagLine'] ?? null,
+                'icon' => $this->memberIcon($member, $details),
                 'level' => isset($member['summonerLevel']) ? (int) $member['summonerLevel'] : null,
                 'isOwner' => (bool) ($member['isLeader'] ?? false),
                 'position' => $member['position'] ?? null,
@@ -230,6 +233,57 @@ class LobbyProvider
         }
 
         return $members;
+    }
+
+    /**
+     * The lobby payload always carries the icon but not the Riot ID name, so
+     * member names and tag lines are resolved through the summoner endpoint
+     * only when the member is missing them.
+     */
+    private function needsSummonerDetails(array $member): bool
+    {
+        $name = trim((string) ($member['gameName'] ?? $member['summonerName'] ?? ''));
+
+        return $name === ''
+            || (! isset($member['summonerIconId']) && ! isset($member['profileIconId']));
+    }
+
+    private function memberName(array $member, ?array $details): string
+    {
+        foreach (['gameName', 'summonerName'] as $key) {
+            $name = trim((string) ($member[$key] ?? ''));
+
+            if ($name !== '') {
+                return $name;
+            }
+        }
+
+        $name = trim((string) ($details['gameName'] ?? ''));
+
+        return $name !== '' ? $name : 'Summoner';
+    }
+
+    private function memberIcon(array $member, ?array $details): ?int
+    {
+        $icon = $member['summonerIconId'] ?? $member['profileIconId'] ?? null;
+
+        if ($icon !== null) {
+            return (int) $icon;
+        }
+
+        return isset($details['profileIconId']) ? (int) $details['profileIconId'] : null;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function summonerDetails(string $summonerId): ?array
+    {
+        if ($summonerId === '') {
+            return null;
+        }
+
+        return $this->bestEffort('/lol-summoner/v1/summoners/'.$summonerId);
     }
 
     /**
