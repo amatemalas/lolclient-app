@@ -50,5 +50,9 @@
                 </svg>
             </a>
         </div>
+
+        <div class="mt-8 flex w-full justify-center">
+            @include('partials.lockfile-settings')
+        </div>
     </div>
 @endsection

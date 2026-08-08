@@ -2,10 +2,11 @@
 
 namespace App\Providers;
 
-use Native\Desktop\Facades\Window;
+use App\Services\LeagueClient\LockfilePreferences;
 use Native\Desktop\Contracts\ProvidesPhpIni;
 use Native\Desktop\Facades\Menu;
 use Native\Desktop\Facades\MenuBar;
+use Native\Desktop\Facades\Window;
 
 class NativeAppServiceProvider implements ProvidesPhpIni
 {
@@ -15,6 +16,10 @@ class NativeAppServiceProvider implements ProvidesPhpIni
      */
     public function boot(): void
     {
+        if ($path = app(LockfilePreferences::class)->get()) {
+            config(['leagueclient.lockfile_path' => $path]);
+        }
+
         Window::open()
             ->width(1600)
             ->height(900);

@@ -4,12 +4,12 @@
         : null;
 
     $nav = [
-        ['label' => 'Home', 'active' => true, 'icon' => 'home'],
-        ['label' => 'Play', 'active' => false, 'icon' => 'play'],
-        ['label' => 'Collection', 'active' => false, 'icon' => 'collection'],
-        ['label' => 'ARAM', 'active' => false, 'icon' => 'aram'],
-        ['label' => 'Clash', 'active' => false, 'icon' => 'clash'],
-        ['label' => 'Shop', 'active' => false, 'icon' => 'shop'],
+        ['label' => 'Home', 'active' => ! request()->routeIs('settings'), 'icon' => 'home', 'href' => url('/')],
+        ['label' => 'Play', 'active' => false, 'icon' => 'play', 'href' => '#'],
+        ['label' => 'Collection', 'active' => false, 'icon' => 'collection', 'href' => '#'],
+        ['label' => 'ARAM', 'active' => false, 'icon' => 'aram', 'href' => '#'],
+        ['label' => 'Clash', 'active' => false, 'icon' => 'clash', 'href' => '#'],
+        ['label' => 'Shop', 'active' => false, 'icon' => 'shop', 'href' => '#'],
     ];
 @endphp
 
@@ -31,7 +31,8 @@
     {{-- Nav --}}
     <nav class="mt-4 flex-1 space-y-1 px-3">
         @foreach ($nav as $item)
-            <a href="#" class="{{ $item['active'] ? 'border-gold/60 bg-gold/10 text-gold-bright' : 'border-transparent text-mist hover:bg-steel-2/70 hover:text-cream' }} flex items-center gap-3 rounded-sm border px-3 py-2.5 text-[13px] font-semibold transition-colors">
+            <a href="{{ $item['href'] }}"
+               class="{{ $item['active'] ? 'border-gold/60 bg-gold/10 text-gold-bright' : 'border-transparent text-mist hover:bg-steel-2/70 hover:text-cream' }} flex items-center gap-3 rounded-sm border px-3 py-2.5 text-[13px] font-semibold transition-colors">
                 @include('partials.lol-icon', ['name' => $item['icon'], 'class' => 'h-[18px] w-[18px]'])
                 <span class="uppercase tracking-[0.16em]">{{ $item['label'] }}</span>
             </a>
@@ -40,7 +41,8 @@
         <div class="!mt-6 px-3 pt-5">
             <p class="label text-gold-deep">Account</p>
         </div>
-        <a href="#" class="flex items-center gap-3 rounded-sm border border-transparent px-3 py-2.5 text-[13px] font-semibold text-mist transition-colors hover:bg-steel-2/70 hover:text-cream">
+        <a href="{{ route('settings') }}"
+           class="{{ request()->routeIs('settings') ? 'border-gold/60 bg-gold/10 text-gold-bright' : 'border-transparent text-mist hover:bg-steel-2/70 hover:text-cream' }} flex items-center gap-3 rounded-sm border px-3 py-2.5 text-[13px] font-semibold transition-colors">
             @include('partials.lol-icon', ['name' => 'settings', 'class' => 'h-[18px] w-[18px]'])
             <span class="uppercase tracking-[0.16em]">Settings</span>
         </a>

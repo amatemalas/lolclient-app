@@ -22,17 +22,7 @@ class LeagueClientConnector
      */
     public function lockfilePath(): ?string
     {
-        $candidates = $this->config['lockfile_path']
-            ? [$this->config['lockfile_path']]
-            : ($this->config['lockfile_paths'][strtolower(PHP_OS_FAMILY)] ?? []);
-
-        foreach ($candidates as $path) {
-            if (is_file($path) && is_readable($path)) {
-                return $path;
-            }
-        }
-
-        return null;
+        return (new LockfileResolver($this->config))->resolve();
     }
 
     /**
