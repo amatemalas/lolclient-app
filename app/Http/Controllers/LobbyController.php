@@ -35,11 +35,12 @@ class LobbyController extends Controller
     }
 
     /**
-     * JSON payload polled by the lobby page for live updates.
+     * JSON payload polled by the lobby page for live updates. Passes along the
+     * client's `rev` so unchanged state can be answered with a minimal payload.
      */
-    public function show(): JsonResponse
+    public function show(Request $request): JsonResponse
     {
-        return response()->json($this->lobby->data());
+        return response()->json($this->lobby->data($request->query('rev')));
     }
 
     /**

@@ -28,21 +28,20 @@ class LobbyTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_lobby_page_renders_the_current_lobby(): void
+    public function test_lobby_page_seeds_the_vue_panel_with_the_current_lobby(): void
     {
         $this->fakeClient();
 
         $this->get('/lobby')
             ->assertOk()
+            ->assertSee('id="lobby-app"', false)
+            ->assertSee('lobby-initial')
             ->assertSee('Ranked Solo')
             ->assertSee('KatarinaMain')
             ->assertSee('Darius Bot')
             ->assertSee('Test Summoner')
-            ->assertSee('Find match')
-            ->assertSee('Invite')
             ->assertSee('TOP')
-            ->assertSee('JUNGLE')
-            ->assertSee('Party');
+            ->assertSee('JUNGLE');
     }
 
     public function test_lobby_page_redirects_to_launcher_required_when_client_is_offline(): void
@@ -66,6 +65,25 @@ class LobbyTest extends TestCase
             ->assertJsonPath('lobby.queueId', 420)
             ->assertJsonPath('lobby.playerCount', 3)
             ->assertJsonPath('lobby.local.isOwner', true);
+    }
+
+    public function test_lobby_show_collapses_to_a_light_payload_when_state_is_unchanged(): void
+    {
+        $this->fakeClient();
+
+        $first = $this->getJson('/api/lcu/lobby')->assertOk()->json();
+
+        $this->assertTrue($first['changed']);
+        $this->assertArrayHasKey('signature', $first);
+        $this->assertNotNull($first['lobby']);
+
+        $second = $this->getJson('/api/lcu/lobby?rev='.$first['signature'])->assertOk()->json();
+
+        $this->assertFalse($second['changed']);
+        $this->assertArrayHasKey('signature', $second);
+        $this->assertNull($second['lobby']);
+
+        Http::assertSentCount(5);
     }
 
     public function test_lobby_store_creates_a_lobby_for_the_requested_queue(): void

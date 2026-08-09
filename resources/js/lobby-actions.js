@@ -1,5 +1,46 @@
+export const DEFAULT_TIMEOUT = 8000;
+
 export function csrfToken() {
     return document.querySelector('meta[name="csrf-token"]')?.content || '';
+}
+
+/**
+ * Send a request to the LCU api layer and decode the JSON response. Each
+ * request is aborted after `timeout` ms so a hung client can never leave the
+ * UI waiting indefinitely.
+ */
+export async function request(path, method = 'GET', body, timeout = DEFAULT_TIMEOUT) {
+    const headers = { Accept: 'application/json' };
+
+    if (method !== 'GET') {
+        headers['X-CSRF-TOKEN'] = csrfToken();
+    }
+
+    if (body !== undefined) {
+        headers['Content-Type'] = 'application/json';
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
+
+    try {
+        const res = await fetch(path, {
+            method,
+            headers,
+            body: body !== undefined ? JSON.stringify(body) : undefined,
+            signal: controller.signal,
+        });
+
+        return await res.json();
+    } catch (error) {
+        if (error?.name === 'AbortError') {
+            throw new Error('The lobby API timed out.');
+        }
+
+        throw error;
+    } finally {
+        clearTimeout(timer);
+    }
 }
 
 /**
@@ -24,26 +65,42 @@ export async function createLobby(queueId, token = csrfToken()) {
 }
 
 /**
- * Send a request to the LCU api layer and decode the JSON response.
+ * Fetch the current lobby payload. When `rev` matches the server's current
+ * state the response collapses to `{ changed: false }` and no lobby data is
+ * included.
  */
-export async function request(path, method = 'GET', body) {
-    const headers = { Accept: 'application/json' };
+export async function fetchLobby(rev) {
+    const query = rev ? `?rev=${encodeURIComponent(rev)}` : '';
 
-    if (method !== 'GET') {
-        headers['X-CSRF-TOKEN'] = csrfToken();
-    }
+    return request(`/api/lcu/lobby${query}`);
+}
 
-    if (body !== undefined) {
-        headers['Content-Type'] = 'application/json';
-    }
+export async function fetchFriends() {
+    return request('/api/lcu/friends');
+}
 
-    const res = await fetch(path, {
-        method,
-        headers,
-        body: body !== undefined ? JSON.stringify(body) : undefined,
-    });
+export async function leave() {
+    return request('/api/lcu/lobby', 'DELETE');
+}
 
-    return res.json();
+export async function setMatchmaking(on) {
+    return request('/api/lcu/lobby/matchmaking/search', on ? 'POST' : 'DELETE');
+}
+
+export async function acceptReadyCheck() {
+    return request('/api/lcu/lobby/ready-check/accept', 'POST');
+}
+
+export async function declineReadyCheck() {
+    return request('/api/lcu/lobby/ready-check/decline', 'POST');
+}
+
+export async function inviteFriend(summonerId) {
+    return request(`/api/lcu/lobby/members/${summonerId}/invite`, 'POST');
+}
+
+export async function kickMember(summonerId) {
+    return request(`/api/lcu/lobby/members/${summonerId}`, 'DELETE');
 }
 
 /**

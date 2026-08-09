@@ -21,14 +21,19 @@ class LobbyProvider
      * Assemble the full lobby payload. Degrades gracefully to safe defaults
      * when the client is offline or a specific endpoint is down.
      *
+     * When the caller passes the `rev` of the state it already rendered, the
+     * payload collapses to a lightweight `{changed: false}` response (no
+     * normalization, no summoner detail lookups) so idle polling is cheap.
+     *
      * @return array<string, mixed>
      */
-    public function data(): array
+    public function data(?string $rev = null): array
     {
         $connected = false;
         $error = null;
         $gameflow = 'None';
         $lobby = null;
+        $signature = null;
 
         try {
             $phase = $this->client->request('GET', '/lol-gameflow/v1/gameflow-phase');
@@ -41,10 +46,25 @@ class LobbyProvider
         }
 
         if ($connected && in_array($gameflow, self::LOBBY_PHASES, true)) {
-            $lobby = $this->normalizeLobby($this->bestEffort('/lol-lobby/v2/lobby'), $gameflow);
+            $raw = $this->bestEffort('/lol-lobby/v2/lobby');
+            $rawReadyCheck = $gameflow === 'ReadyCheck'
+                ? $this->bestEffort('/lol-matchmaking/v1/ready-check')
+                : null;
+
+            $signature = sha1($gameflow.'|'.json_encode($raw).'|'.json_encode($rawReadyCheck));
+
+            if ($signature !== $rev) {
+                $lobby = $this->normalizeLobby($raw, $gameflow);
+            }
+        } elseif ($connected) {
+            $signature = 'phase:'.$gameflow;
+        } else {
+            $signature = 'offline';
         }
 
-        return compact('connected', 'error', 'gameflow', 'lobby');
+        $changed = $signature !== $rev;
+
+        return compact('connected', 'error', 'gameflow', 'lobby', 'signature', 'changed');
     }
 
     /**
