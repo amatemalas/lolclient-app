@@ -3,15 +3,19 @@
 @section('title', 'Settings')
 
 @section('content')
-    @include('partials.sidebar')
+    @php
+        $seed = [
+            'connected' => $connected ?? false,
+            'error'     => $error ?? null,
+            'gameflow'  => $gameflow ?? 'None',
+            'summoner'  => $summoner ?? [],
+            'wallet'    => $wallet ?? ['rp' => 0, 'be' => 0],
+        ];
+    @endphp
 
-    <div class="flex min-w-0 flex-1 flex-col">
-        @include('partials.topbar')
+    <div id="settings-app" class="contents"></div>
 
-        <main class="flex-1 overflow-y-auto px-8 py-6">
-            <div class="mx-auto flex max-w-[1360px] flex-col gap-5">
-                @include('partials.lockfile-settings')
-            </div>
-        </main>
-    </div>
+    <script type="application/json" id="settings-initial">@json($seed)</script>
+
+    @vite(['resources/js/settings.js'])
 @endsection

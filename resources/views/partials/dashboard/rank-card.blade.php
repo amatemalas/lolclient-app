@@ -23,7 +23,7 @@
     ];
 @endphp
 
-<div class="clip-corner panel reveal p-5">
+<div class=" panel reveal p-5">
     <div class="flex items-center justify-between">
         <h3 class="label text-gold-deep">Season 2026</h3>
         <span class="font-mono text-[10px] text-mist">Split 2</span>

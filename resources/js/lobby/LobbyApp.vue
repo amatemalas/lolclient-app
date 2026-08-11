@@ -24,6 +24,8 @@ const props = defineProps({
     assetBase: { type: String, default: '' },
 });
 
+const emit = defineEmits(['queue-name-changed']);
+
 const state = reactive({
     connected: Boolean(props.initial.connected),
     error: props.initial.error || '',
@@ -65,6 +67,8 @@ const fallbackQueue = {
 const queue = computed(() => state.lobby?.queue || fallbackQueue);
 const memberCount = computed(() => state.lobby?.playerCount ?? 0);
 const maxPlayers = computed(() => state.lobby?.maxPlayers ?? 5);
+
+watch(queue, (q) => emit('queue-name-changed', q?.name || 'No game mode'), { immediate: true });
 const showReadyCheck = computed(() => Boolean(state.lobby?.readyCheck && state.gameflow === 'ReadyCheck'));
 const secondsLeft = computed(() => Math.max(0, Math.ceil((readyDeadline.value - now.value) / 1000)));
 
@@ -419,7 +423,7 @@ onUnmounted(() => {
 
 <template>
     <div class="flex flex-col gap-5">
-        <div v-if="!state.connected" class="panel-dim clip-corner flex items-center gap-3 px-4 py-3" style="--reveal-delay:.01s">
+        <div v-if="!state.connected" class="panel-dim  flex items-center gap-3 px-4 py-3" style="--reveal-delay:.01s">
             <span class="h-2 w-2 shrink-0 animate-pulse rounded-full bg-ember"></span>
             <p class="text-[12px] font-semibold text-cream">League client offline</p>
             <p class="text-[11px] text-mist">{{ state.error || 'Start League of Legends to manage your lobby.' }}</p>

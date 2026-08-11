@@ -57,16 +57,15 @@ class ApiControllerTest extends TestCase
 
         $this->get('/')
             ->assertOk()
-            ->assertSee('Connected')
+            ->assertSee('dashboard-initial')
+            ->assertSee('dashboard-app')
             ->assertSee('Test Summoner')
             ->assertSee('DIAMOND')
             ->assertSee('Miss Fortune')
-            ->assertSee('12')
-            ->assertSee('23,480')
             ->assertSee('Win 2 games')
             ->assertSee('KatarinaMain')
-            ->assertSee('assets/items/icons2d/1001_class_t1_bootsofspeed.png')
-            ->assertSee('assets/items/icons2d/3340_class_t1_wardingtotem.png');
+            ->assertSee('1001_class_t1_bootsofspeed')
+            ->assertSee('3340_class_t1_wardingtotem');
     }
 
     public function test_dashboard_redirects_to_launcher_required_when_client_is_not_running(): void
@@ -78,7 +77,7 @@ class ApiControllerTest extends TestCase
 
         $this->get(route('launcher.required'))
             ->assertOk()
-            ->assertSee('Log into the League of Legends launcher to use this app.');
+            ->assertSee('launcher-app');
     }
 
     public function test_dashboard_degrades_gracefully_when_an_endpoint_fails(): void
@@ -90,7 +89,7 @@ class ApiControllerTest extends TestCase
         $this->get('/')
             ->assertOk()
             ->assertSee('Test Summoner')
-            ->assertSee('No friends online');
+            ->assertSee('dashboard-initial');
     }
 
     public function test_asset_proxies_client_images(): void

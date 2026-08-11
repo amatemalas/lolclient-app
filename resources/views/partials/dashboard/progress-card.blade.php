@@ -1,4 +1,4 @@
-<div class="clip-corner panel reveal p-5" style="--reveal-delay:.06s">
+<div class=" panel reveal p-5" style="--reveal-delay:.06s">
     <h3 class="label text-gold-deep">Progress</h3>
     <div class="mt-4 flex items-end justify-between">
         <p class="font-display text-xl font-bold uppercase text-cream">Level {{ number_format($summoner['summonerLevel']) }}</p>
@@ -10,7 +10,7 @@
     <div class="mt-4 space-y-2.5 border-t border-line/60 pt-4">
         @forelse ($missions as $q)
             <div class="flex items-center gap-3">
-                <div class="clip-corner-sm {{ $q['done'] >= $q['total'] ? 'bg-vine/20 text-vine' : 'bg-gold/15 text-gold' }} flex h-7 w-7 items-center justify-center">
+                <div class=" {{ $q['done'] >= $q['total'] ? 'bg-vine/20 text-vine' : 'bg-gold/15 text-gold' }} flex h-7 w-7 items-center justify-center">
                     <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 13l4 4L19 7"/></svg>
                 </div>
                 <div class="min-w-0 flex-1">

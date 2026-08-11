@@ -18,7 +18,7 @@
 <aside class="flex w-60 shrink-0 flex-col border-r border-line/60 bg-obsidian/80 backdrop-blur-sm">
     {{-- Brand --}}
     <div class="flex items-center gap-3 border-b border-line/60 px-5 py-5">
-        <div class="clip-corner-sm flex h-9 w-9 items-center justify-center bg-gradient-to-br from-gold-bright via-gold to-gold-deep shadow-[0_0_18px_rgba(200,170,110,0.45)]">
+        <div class="flex h-9 w-9 items-center justify-center bg-gradient-to-br from-gold-bright via-gold to-gold-deep shadow-[0_0_18px_rgba(200,170,110,0.45)]">
             <svg class="h-5 w-5 text-obsidian" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
                 <path d="M12 2l7 4v5c0 5-3 8.5-7 11-4-2.5-7-6-7-11V6l7-4z" stroke-linejoin="round"/>
                 <path d="M9 11.5l2.2 2.2L15.5 9" stroke-linecap="round" stroke-linejoin="round"/>
@@ -65,7 +65,7 @@
                 <p class="truncate text-[13px] font-bold text-cream">{{ $summoner['gameName'] }}</p>
                 <p class="text-[11px] text-mist">Level <span class="font-mono text-gold">{{ number_format($summoner['summonerLevel']) }}</span> · #{{ $summoner['tagLine'] }}</p>
             </div>
-            <span class="clip-corner-sm bg-gold/15 px-2 py-1 font-mono text-[10px] font-semibold text-gold-bright">LVL</span>
+            <span class="bg-gold/15 px-2 py-1 font-mono text-[10px] font-semibold text-gold-bright">LVL</span>
         </div>
         <div class="mt-3 flex items-center gap-3 text-[11px] font-semibold">
             <span class="flex items-center gap-1.5 text-gold" title="Blue Essence">

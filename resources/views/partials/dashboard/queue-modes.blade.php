@@ -12,7 +12,7 @@
         <button type="button"
                 data-queue-id="{{ $mode['id'] }}"
                 data-queue-action
-                class="clip-corner-sm panel reveal relative overflow-hidden p-4 text-left transition-colors hover:border-gold/40 {{ $mode['disabled'] ? 'cursor-not-allowed opacity-60' : 'cursor-pointer' }}"
+                class=" panel reveal relative overflow-hidden p-4 text-left transition-colors hover:border-gold/40 {{ $mode['disabled'] ? 'cursor-not-allowed opacity-60' : 'cursor-pointer' }}"
                 {{ $mode['disabled'] ? 'disabled' : '' }}>
             @if ($mode['featured'])
                 <div class="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-gold to-transparent"></div>
@@ -22,7 +22,7 @@
                     @include('partials.lol-icon', ['name' => $mode['icon'], 'class' => 'h-6 w-6'])
                 </span>
                 @if ($mode['disabled'])
-                    <span class="clip-corner-sm bg-ember/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.2em] text-ember">Offline</span>
+                    <span class=" bg-ember/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.2em] text-ember">Offline</span>
                 @else
                     <span class="h-1.5 w-1.5 rounded-full {{ $mode['featured'] ? 'bg-gold' : 'bg-arcane' }}"></span>
                 @endif

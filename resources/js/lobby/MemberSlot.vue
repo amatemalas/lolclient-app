@@ -30,7 +30,7 @@ function onIconError(event) {
 
 <template>
     <div
-        class="member-slot clip-corner-sm relative flex min-h-[210px] flex-col items-center justify-between border p-4 transition-colors"
+        class="member-slot relative flex min-h-[210px] flex-col items-center justify-between border p-4 transition-colors"
         :class="[
             hasMember ? 'border-line bg-steel/70' : 'border-dashed border-line/40 bg-obsidian/40',
             member?.isLocal ? 'ring-1 ring-gold/50' : '',
@@ -39,7 +39,7 @@ function onIconError(event) {
         <span class="label" :class="hasMember ? 'text-gold-deep' : 'text-mist/50'">{{ slot?.position || 'FILL' }}</span>
 
         <div class="relative">
-            <div class="clip-corner-sm relative flex h-16 w-16 items-center justify-center overflow-hidden bg-gradient-to-br from-steel-2 to-obsidian ring-1 ring-line">
+            <div class="relative flex h-16 w-16 items-center justify-center overflow-hidden bg-gradient-to-br from-steel-2 to-obsidian ring-1 ring-line">
                 <span class="font-display text-lg font-bold" :class="hasMember ? 'text-gold-bright' : 'text-mist/40'">{{ initial }}</span>
                 <img v-if="iconUrl" :src="iconUrl" alt="" class="absolute inset-0 h-full w-full object-cover" loading="lazy" @error="onIconError">
             </div>
@@ -52,8 +52,8 @@ function onIconError(event) {
         </div>
 
         <div class="flex h-6 items-center gap-2">
-            <span v-if="showReady" class="clip-corner-sm px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.16em] bg-vine/15 text-vine">{{ member?.ready ? 'Ready' : 'Not ready' }}</span>
-            <button v-if="canKick" :disabled="kicking" class="clip-corner-sm border border-ember/40 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.16em] text-ember transition-colors hover:bg-ember/10 disabled:cursor-not-allowed disabled:opacity-50" @click="$emit('kick', member)">Kick</button>
+            <span v-if="showReady" class="px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.16em] bg-vine/15 text-vine">{{ member?.ready ? 'Ready' : 'Not ready' }}</span>
+            <button v-if="canKick" :disabled="kicking" class="border border-ember/40 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.16em] text-ember transition-colors hover:bg-ember/10 disabled:cursor-not-allowed disabled:opacity-50" @click="$emit('kick', member)">Kick</button>
         </div>
     </div>
 </template>

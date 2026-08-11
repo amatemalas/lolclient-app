@@ -5,25 +5,62 @@
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    /* ─── Typography ──────────────────────────────── */
+    --font-sans:    'Manrope', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
     --font-display: 'Cinzel', 'Times New Roman', serif;
-    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --font-mono:    'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
-    --color-void: #06080f;
-    --color-obsidian: #0b0f1a;
-    --color-steel: #121826;
-    --color-steel-2: #182134;
-    --color-line: #243049;
-    --color-gold: #c8aa6e;
-    --color-gold-bright: #e5c98f;
-    --color-gold-deep: #8a7547;
-    --color-arcane: #0ac8b9;
+    /* ─── Background scale (midnight black) ──────── */
+    --color-bg-base:    #030305;   /* deepest midnight — app shell */
+    --color-bg-surface: #07070d;   /* cards, panels */
+    --color-bg-raised:  #0d0d16;   /* elevated elements */
+    --color-bg-overlay: #13131e;   /* modals, dropdowns */
+    --color-bg-inset:   #1a1a28;   /* input fields, inset areas */
+
+    /* ─── Border scale ────────────────────────────── */
+    --color-border-subtle:      #18182a;              /* hairline dividers */
+    --color-border-default:     #22223a;              /* standard borders */
+    --color-border-gold:        rgb(200 170 110 / 0.30); /* resting gold trim */
+    --color-border-gold-active: rgb(200 170 110 / 0.70); /* hover / focus gold trim */
+
+    /* ─── Gold palette ────────────────────────────── */
+    --color-gold:       #c8aa6e;   /* primary brand gold */
+    --color-gold-bright:#e5c98f;   /* highlight / hover gold */
+    --color-gold-deep:  #8a7547;   /* shadow / pressed gold */
+    --color-gold-glow:  rgb(200 170 110 / 0.15); /* ambient gold haze */
+
+    /* ─── Text scale ──────────────────────────────── */
+    --color-text-primary:   #f0e6d2;  /* warm cream — body copy */
+    --color-text-secondary: #b8a98c;  /* dimmed secondary text */
+    --color-text-muted:     #5c6370;  /* placeholder / disabled */
+    --color-text-gold:      #c8aa6e;  /* gold labels & headings */
+
+    /* ─── Accent colors ───────────────────────────── */
+    --color-arcane:        #0ac8b9;
     --color-arcane-bright: #86e4d6;
-    --color-cerulean: #0d94ce;
-    --color-cream: #f0e6d2;
-    --color-mist: #8b93a0;
-    --color-ember: #e84057;
-    --color-vine: #2e9e6b;
+    --color-cerulean:      #0d94ce;
+
+    /* ─── Status colors ───────────────────────────── */
+    --color-danger:  #e84057;
+    --color-success: #2e9e6b;
+
+    /* ─── Radius scale ────────────────────────────── */
+    --radius-xs:   6px;
+    --radius-sm:   10px;
+    --radius:      15px;   /* default corner radius */
+    --radius-lg:   22px;
+    --radius-full: 999px;
+
+    /* ─── Legacy aliases (keep existing Blade classes working) ── */
+    --color-void:    #030305;
+    --color-obsidian:#07070d;
+    --color-steel:   #0d0d16;
+    --color-steel-2: #13131e;
+    --color-line:    #22223a;
+    --color-cream:   #f0e6d2;
+    --color-mist:    #5c6370;
+    --color-ember:   #e84057;
+    --color-vine:    #2e9e6b;
 }
 
 @layer base {
@@ -33,14 +70,14 @@
     }
 
     body {
-        background-color: var(--color-void);
-        color: var(--color-cream);
+        background-color: var(--color-bg-base);
+        color: var(--color-text-primary);
         -webkit-font-smoothing: antialiased;
     }
 
     ::selection {
-        background: rgb(200 170 110 / 0.35);
-        color: #fff;
+        background: var(--color-gold-glow);
+        color: var(--color-gold-bright);
     }
 
     *::-webkit-scrollbar {
@@ -53,9 +90,13 @@
     }
 
     *::-webkit-scrollbar-thumb {
-        background: var(--color-line);
-        border: 2px solid var(--color-void);
-        border-radius: 999px;
+        background: var(--color-border-default);
+        border: 2px solid var(--color-bg-base);
+        border-radius: var(--radius-full);
+    }
+
+    *::-webkit-scrollbar-thumb:hover {
+        background: var(--color-gold-deep);
     }
 }
 
@@ -71,11 +112,13 @@
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
     }
 
-    /* Standard obsidian panel with a brass hairline on top */
+    /* Panel — midnight surface with a gold hairline top edge */
     .panel {
         position: relative;
-        background: linear-gradient(180deg, var(--color-steel) 0%, var(--color-obsidian) 100%);
-        border: 1px solid var(--color-line);
+        background: linear-gradient(180deg, var(--color-bg-raised) 0%, var(--color-bg-surface) 100%);
+        border: 1px solid var(--color-border-gold);
+        border-radius: var(--radius);
+        box-shadow: 0 0 28px var(--color-gold-glow), inset 0 1px 0 rgb(200 170 110 / 0.08);
     }
 
     .panel::before {
@@ -84,22 +127,16 @@
         inset-inline: 16px;
         top: 0;
         height: 1px;
-        background: linear-gradient(90deg, transparent, rgb(200 170 110 / 0.55), transparent);
+        border-radius: var(--radius-full);
+        background: linear-gradient(90deg, transparent, rgb(200 170 110 / 0.60), transparent);
     }
 
+    /* Dimmed / secondary panel variant */
     .panel-dim {
         position: relative;
-        background: linear-gradient(180deg, rgb(18 24 38 / 0.7), rgb(11 15 26 / 0.7));
-        border: 1px solid rgb(36 48 73 / 0.7);
-    }
-
-    /* Angled "hextech" corner cuts */
-    .clip-corner {
-        clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%);
-    }
-
-    .clip-corner-sm {
-        clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+        background: linear-gradient(180deg, rgb(13 13 22 / 0.7), rgb(7 7 13 / 0.7));
+        border: 1px solid var(--color-border-gold);
+        border-radius: var(--radius);
     }
 
     /* Brushed-gold display text */
@@ -110,13 +147,44 @@
         color: transparent;
     }
 
-    /* Section label with diamond bullets */
+    /* Section label */
     .label {
         font-family: var(--font-display);
         font-size: 11px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.28em;
+        color: var(--color-text-gold);
+    }
+
+    /* Gold-bordered button */
+    .btn-gold {
+        border: 1px solid var(--color-border-gold-active);
+        border-radius: var(--radius-sm);
+        background: linear-gradient(180deg, rgb(200 170 110 / 0.12) 0%, rgb(200 170 110 / 0.04) 100%);
+        color: var(--color-gold-bright);
+        transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-gold:hover {
+        background: linear-gradient(180deg, rgb(200 170 110 / 0.22) 0%, rgb(200 170 110 / 0.10) 100%);
+        border-color: var(--color-gold-bright);
+        box-shadow: 0 0 14px var(--color-gold-glow);
+    }
+
+    /* Input field */
+    .input {
+        background: var(--color-bg-inset);
+        border: 1px solid var(--color-border-default);
+        border-radius: var(--radius-sm);
+        color: var(--color-text-primary);
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .input:focus {
+        outline: none;
+        border-color: var(--color-border-gold-active);
+        box-shadow: 0 0 0 3px var(--color-gold-glow);
     }
 }
 

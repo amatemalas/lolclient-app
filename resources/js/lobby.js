@@ -1,5 +1,5 @@
 import { createApp } from 'vue';
-import LobbyApp from './lobby/LobbyApp.vue';
+import LobbyPage from './lobby/LobbyPage.vue';
 
 const mount = document.getElementById('lobby-app');
 const initialEl = document.getElementById('lobby-initial');
@@ -13,8 +13,5 @@ if (mount && initialEl) {
         // Fall back to an empty seed; polling fills in the real state.
     }
 
-    createApp(LobbyApp, {
-        initial,
-        assetBase: document.querySelector('[data-asset-base]')?.dataset.assetBase || '',
-    }).mount(mount);
+    createApp(LobbyPage, { initial }).mount(mount);
 }

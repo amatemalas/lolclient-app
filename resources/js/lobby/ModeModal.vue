@@ -20,7 +20,7 @@ defineEmits(['close', 'select']);
                 </button>
             </div>
             <div class="max-h-[70vh] overflow-y-auto">
-                <div class="panel clip-corner flex flex-col gap-1 p-2">
+                <div class="panel  flex flex-col gap-1 p-2">
                     <button
                         v-for="mode in queueModes"
                         :key="mode.id"

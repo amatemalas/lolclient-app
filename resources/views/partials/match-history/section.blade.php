@@ -12,7 +12,7 @@
     @endif
 </div>
 
-<div class="panel clip-corner flex flex-col divide-y divide-line/50">
+<div class="panel  flex flex-col divide-y divide-line/50">
     @forelse ($matches as $m)
         @include('partials.match-history.row', ['match' => $m, 'asset' => $asset])
     @empty

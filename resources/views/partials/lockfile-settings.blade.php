@@ -1,7 +1,7 @@
-<section class="panel clip-corner reveal w-full max-w-2xl px-8 py-7" style="--reveal-delay:.15s" data-lockfile-settings>
+<section class="panel  reveal w-full max-w-2xl px-8 py-7" style="--reveal-delay:.15s" data-lockfile-settings>
     <div class="flex items-center justify-between gap-4">
         <p class="label text-gold-deep">Client path</p>
-        <span class="clip-corner-sm border border-line bg-steel-2/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-gold-bright" data-lockfile-source>Looking…</span>
+        <span class="border border-line bg-steel-2/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-gold-bright" data-lockfile-source>Looking…</span>
     </div>
 
     <p class="mt-4 text-[12px] leading-relaxed text-mist">
@@ -29,11 +29,11 @@
                    class="min-w-0 flex-1 rounded-sm border border-line bg-obsidian px-4 py-2.5 font-mono text-[12px] text-cream placeholder:text-mist/60 focus:border-gold/70 focus:outline-none">
             <div class="flex gap-2">
                 <button type="submit" data-lockfile-save
-                        class="clip-corner-sm bg-gradient-to-br from-gold-bright via-gold to-gold-deep px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-obsidian transition-transform hover:scale-[1.03]">
+                        class="bg-gradient-to-br from-gold-bright via-gold to-gold-deep px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-obsidian transition-transform hover:scale-[1.03]">
                     Save
                 </button>
                 <button type="button" data-lockfile-reset
-                        class="clip-corner-sm border border-line px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-mist transition-colors hover:border-gold/60 hover:text-cream">
+                        class="border border-line px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-mist transition-colors hover:border-gold/60 hover:text-cream">
                     Reset
                 </button>
             </div>

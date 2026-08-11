@@ -30,10 +30,10 @@ function isKicking(slot) {
 </script>
 
 <template>
-    <section class="panel clip-corner reveal flex min-w-0 flex-col p-5" style="--reveal-delay:.08s">
+    <section class="panel  reveal flex min-w-0 flex-col p-5" style="--reveal-delay:.08s">
         <div class="flex items-center justify-between">
             <h2 class="label text-gold-grad">Party</h2>
-            <span class="clip-corner-sm bg-arcane/15 px-2 py-0.5 font-mono text-[10px] font-semibold text-arcane-bright">
+            <span class=" bg-arcane/15 px-2 py-0.5 font-mono text-[10px] font-semibold text-arcane-bright">
                 <span data-member-count>{{ memberCount }}</span> / {{ maxPlayers }}
             </span>
         </div>

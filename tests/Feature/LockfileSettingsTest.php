@@ -86,15 +86,14 @@ class LockfileSettingsTest extends TestCase
 
         $this->get('/settings')
             ->assertOk()
-            ->assertSee('Client path')
-            ->assertSee('Lockfile path');
+            ->assertSee('settings-app')
+            ->assertSee('settings-initial');
     }
 
     public function test_launcher_required_page_offers_lockfile_settings(): void
     {
         $this->get(route('launcher.required'))
             ->assertOk()
-            ->assertSee('Client path')
-            ->assertSee('Lockfile path');
+            ->assertSee('launcher-app');
     }
 }
